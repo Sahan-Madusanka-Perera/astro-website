@@ -49,7 +49,7 @@ export function Hero() {
             y: { duration: 6, repeat: Infinity, ease: "easeInOut" },
             x: { duration: 8, repeat: Infinity, ease: "easeInOut" },
           }}
-          className="relative w-72 h-72 md:w-96 md:h-96 mb-12 z-30"
+          className="relative w-80 h-80 md:w-[28rem] md:h-[28rem] mb-12 z-30"
         >
           <Image
             src="/images/astronaut.png"
