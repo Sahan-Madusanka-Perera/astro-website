@@ -33,22 +33,7 @@ export function Hero() {
       </div>
 
       {/* Main Content Container */}
-      <div className="container mx-auto px-4 relative z-10 flex flex-col items-center justify-center min-h-screen">
-        {/* Large Title */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1 }}
-          className="text-center mb-8"
-        >
-          <h1 className="text-6xl md:text-8xl lg:text-9xl font-black text-white tracking-tighter mb-4">
-            INCRIDEA
-          </h1>
-          <p className="text-xl md:text-2xl text-gray-300 font-light">
-            Explore the infinite.
-          </p>
-        </motion.div>
-
+      <div className="container mx-auto px-4 relative z-10 flex flex-col items-center justify-center min-h-screen pt-20">
         {/* Astronaut floating in center */}
         <motion.div
           initial={{ opacity: 0, scale: 0.5 }}
@@ -64,10 +49,35 @@ export function Hero() {
             y: { duration: 6, repeat: Infinity, ease: "easeInOut" },
             x: { duration: 8, repeat: Infinity, ease: "easeInOut" },
           }}
-          className="relative w-64 h-64 md:w-80 md:h-80 my-8 z-30"
+          className="relative w-72 h-72 md:w-96 md:h-96 mb-12 z-30"
         >
           <AnimatedAstronaut />
         </motion.div>
+
+        {/* Title Behind/Around Astronaut */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1, delay: 0.5 }}
+          className="text-center mb-8 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none"
+        >
+          <h1 className="text-7xl md:text-8xl lg:text-[10rem] font-black text-white/10 tracking-tighter leading-none">
+            J'PURA
+          </h1>
+          <h1 className="text-7xl md:text-8xl lg:text-[10rem] font-black text-white/10 tracking-tighter leading-none -mt-4">
+            ASTRO
+          </h1>
+        </motion.div>
+
+        {/* Subtitle */}
+        <motion.p
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.7 }}
+          className="text-2xl md:text-3xl text-white/80 font-light text-center mb-8 z-30"
+        >
+          Explore the infinite.
+        </motion.p>
 
         {/* Earth with Orbits at bottom */}
         <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 w-[600px] h-[600px] md:w-[800px] md:h-[800px]">
