@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { AnimatedAstronaut } from './AnimatedAstronaut';
+import Image from 'next/image';
 import { ArrowRight } from 'lucide-react';
 
 export function Hero() {
@@ -51,7 +51,13 @@ export function Hero() {
           }}
           className="relative w-72 h-72 md:w-96 md:h-96 mb-12 z-30"
         >
-          <AnimatedAstronaut />
+          <Image
+            src="/images/astronaut.png"
+            alt="Floating Astronaut"
+            fill
+            className="object-contain drop-shadow-2xl"
+            priority
+          />
         </motion.div>
 
         {/* Title Behind/Around Astronaut */}
