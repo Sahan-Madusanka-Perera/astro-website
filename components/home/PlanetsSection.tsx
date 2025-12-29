@@ -8,6 +8,9 @@ import { PLANETS } from '@/lib/planets-data';
 export function PlanetsSection() {
   return (
     <section className="py-24 relative overflow-hidden bg-[#0a0e27]">
+      {/* Subtle top fade to blend with hero */}
+      <div className="pointer-events-none absolute inset-0 bg-linear-to-b from-[#0a0e27] via-[#0a0e27] to-transparent" />
+
       {/* Animated Background Stars - matching hero section */}
       <div className="absolute inset-0">
         {[...Array(100)].map((_, i) => (
@@ -33,49 +36,9 @@ export function PlanetsSection() {
         ))}
       </div>
 
-      {/* Cosmic Background Gradients */}
-      <div className="absolute inset-0">
-        {/* Multiple layered gradients for depth */}
-        <div className="absolute inset-0 bg-linear-to-br from-purple-900/30 via-transparent to-blue-900/30" />
-        <div className="absolute inset-0 bg-linear-to-tl from-pink-900/20 via-transparent to-cyan-900/20" />
-        
-        {/* Nebula-like glows */}
-        <motion.div
-          className="absolute top-1/4 -left-1/4 w-96 h-96 bg-purple-600/20 rounded-full blur-3xl"
-          animate={{
-            scale: [1, 1.2, 1],
-            opacity: [0.3, 0.5, 0.3],
-          }}
-          transition={{
-            duration: 8,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-        />
-        <motion.div
-          className="absolute bottom-1/4 -right-1/4 w-96 h-96 bg-blue-600/20 rounded-full blur-3xl"
-          animate={{
-            scale: [1.2, 1, 1.2],
-            opacity: [0.5, 0.3, 0.5],
-          }}
-          transition={{
-            duration: 10,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-        />
-        <motion.div
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-indigo-600/10 rounded-full blur-3xl"
-          animate={{
-            scale: [1, 1.3, 1],
-            rotate: [0, 180, 360],
-          }}
-          transition={{
-            duration: 20,
-            repeat: Infinity,
-            ease: "linear",
-          }}
-        />
+      {/* Very subtle vignette for depth (same palette as hero) */}
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute inset-0 bg-radial from-transparent via-transparent to-[#0a0e27]" />
       </div>
 
       {/* Enhanced star field */}
