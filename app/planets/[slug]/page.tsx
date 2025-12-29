@@ -25,12 +25,12 @@ export default function PlanetPage({
       {/* Enhanced Cosmic Background */}
       <div className="absolute inset-0">
         {/* Layered gradients */}
-        <div className="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-transparent to-blue-900/20" />
-        <div className="absolute inset-0 bg-gradient-to-tl from-pink-900/10 via-transparent to-cyan-900/10" />
+        <div className="absolute inset-0 bg-linear-to-br from-purple-900/20 via-transparent to-blue-900/20" />
+        <div className="absolute inset-0 bg-linear-to-tl from-pink-900/10 via-transparent to-cyan-900/10" />
         
         {/* Large nebula glow matching planet color */}
         <motion.div
-          className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[800px] rounded-full blur-3xl opacity-20"
+          className="absolute top-0 left-1/2 -translate-x-1/2 w-200 h-200 rounded-full blur-3xl opacity-20"
           style={{ backgroundColor: planet.color }}
           animate={{
             scale: [1, 1.2, 1],
@@ -156,7 +156,7 @@ export default function PlanetPage({
           <h2 className="text-3xl font-bold text-white text-center mb-8">
             Director
           </h2>
-          <div className="max-w-3xl mx-auto bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-3xl p-8 md:p-10 border border-white/20 shadow-2xl relative overflow-hidden">
+          <div className="max-w-3xl mx-auto bg-linear-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-3xl p-8 md:p-10 border border-white/20 shadow-2xl relative overflow-hidden">
             {/* Card glow effect */}
             <div 
               className="absolute inset-0 opacity-20 rounded-3xl blur-2xl"
@@ -165,11 +165,11 @@ export default function PlanetPage({
             
             <div className="relative flex flex-col md:flex-row items-center gap-8">
               <motion.div 
-                className="relative w-56 h-56 rounded-full overflow-hidden flex-shrink-0 ring-4 shadow-2xl"
+                className="relative w-56 h-56 rounded-full overflow-hidden shrink-0 ring-4 shadow-2xl"
                 style={{ 
-                  ringColor: planet.color + '60',
+                  '--tw-ring-color': planet.color + '60',
                   boxShadow: `0 20px 60px ${planet.color}40`
-                }}
+                } as React.CSSProperties}
                 whileHover={{ scale: 1.05 }}
                 transition={{ type: "spring", stiffness: 300 }}
               >
@@ -234,7 +234,7 @@ export default function PlanetPage({
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.5 + index * 0.1 }}
-                className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-2xl p-6 border border-white/20 hover:border-white/40 transition-all duration-300 shadow-xl group relative overflow-hidden"
+                className="bg-linear-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-2xl p-6 border border-white/20 hover:border-white/40 transition-all duration-300 shadow-xl group relative overflow-hidden"
                 whileHover={{ y: -5 }}
               >
                 {/* Card hover glow */}
@@ -247,9 +247,9 @@ export default function PlanetPage({
                   <motion.div 
                     className="relative w-36 h-36 mx-auto mb-4 rounded-full overflow-hidden ring-4 shadow-xl"
                     style={{ 
-                      ringColor: planet.color + '40',
+                      '--tw-ring-color': planet.color + '40',
                       boxShadow: `0 10px 30px ${planet.color}30`
-                    }}
+                    } as React.CSSProperties}
                     whileHover={{ scale: 1.1 }}
                     transition={{ type: "spring", stiffness: 300 }}
                   >
@@ -304,7 +304,7 @@ export default function PlanetPage({
           <h2 className="text-3xl font-bold text-white text-center mb-8">
             Responsibilities
           </h2>
-          <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-3xl p-8 md:p-10 border border-white/20 shadow-2xl relative overflow-hidden">
+          <div className="bg-linear-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-3xl p-8 md:p-10 border border-white/20 shadow-2xl relative overflow-hidden">
             {/* Card glow effect */}
             <div 
               className="absolute inset-0 opacity-10 rounded-3xl blur-2xl"
@@ -321,7 +321,7 @@ export default function PlanetPage({
                   className="flex items-start gap-4 group"
                 >
                   <motion.span
-                    className="w-3 h-3 rounded-full mt-2 flex-shrink-0 shadow-lg"
+                    className="w-3 h-3 rounded-full mt-2 shrink-0 shadow-lg"
                     style={{ 
                       backgroundColor: planet.color,
                       boxShadow: `0 0 20px ${planet.color}80`

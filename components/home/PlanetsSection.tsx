@@ -7,8 +7,9 @@ import { PLANETS } from '@/lib/planets-data';
 
 export function PlanetsSection() {
   return (
-    <section className="py-24 relative overflow-hidden bg-[#0a0e27]">
-      {/* Cosmic Background Gradients */}
+    <section className="py-24 relative overflow-hidden bg-[#0a0e27]">      {/* Smooth gradient transition from hero */}
+      <div className="absolute top-0 left-0 right-0 h-32 bg-linear-to-b from-[#0a0e27] via-[#0a0e27] to-transparent" />
+            {/* Cosmic Background Gradients */}
       <div className="absolute inset-0">
         {/* Multiple layered gradients for depth */}
         <div className="absolute inset-0 bg-gradient-to-br from-purple-900/30 via-transparent to-blue-900/30" />
