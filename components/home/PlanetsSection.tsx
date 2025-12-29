@@ -7,13 +7,37 @@ import { PLANETS } from '@/lib/planets-data';
 
 export function PlanetsSection() {
   return (
-    <section className="py-24 relative overflow-hidden bg-[#0a0e27]">      {/* Smooth gradient transition from hero */}
-      <div className="absolute top-0 left-0 right-0 h-32 bg-linear-to-b from-[#0a0e27] via-[#0a0e27] to-transparent" />
-            {/* Cosmic Background Gradients */}
+    <section className="py-24 relative overflow-hidden bg-[#0a0e27]">
+      {/* Animated Background Stars - matching hero section */}
+      <div className="absolute inset-0">
+        {[...Array(100)].map((_, i) => (
+          <motion.div
+            key={i}
+            className="absolute bg-white rounded-full"
+            style={{
+              width: Math.random() * 3 + 'px',
+              height: Math.random() * 3 + 'px',
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+            }}
+            animate={{
+              opacity: [0.1, 1, 0.1],
+              scale: [1, 1.2, 1],
+            }}
+            transition={{
+              duration: 3 + Math.random() * 3,
+              repeat: Infinity,
+              delay: Math.random() * 2,
+            }}
+          />
+        ))}
+      </div>
+
+      {/* Cosmic Background Gradients */}
       <div className="absolute inset-0">
         {/* Multiple layered gradients for depth */}
-        <div className="absolute inset-0 bg-gradient-to-br from-purple-900/30 via-transparent to-blue-900/30" />
-        <div className="absolute inset-0 bg-gradient-to-tl from-pink-900/20 via-transparent to-cyan-900/20" />
+        <div className="absolute inset-0 bg-linear-to-br from-purple-900/30 via-transparent to-blue-900/30" />
+        <div className="absolute inset-0 bg-linear-to-tl from-pink-900/20 via-transparent to-cyan-900/20" />
         
         {/* Nebula-like glows */}
         <motion.div
