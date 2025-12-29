@@ -8,6 +8,13 @@ import { PLANETS } from '@/lib/planets-data';
 export function PlanetsSection() {
   return (
     <section className="py-24 relative overflow-hidden bg-[#0a0e27]">
+      {/* Seamless divider from hero: soft horizon glow and faint ring */}
+      <div className="pointer-events-none absolute -top-12 left-1/2 w-[120%] h-24 -translate-x-1/2">
+        <div className="absolute inset-x-0 bottom-0 h-px bg-white/10" />
+        <div className="absolute inset-0 bg-radial from-white/10 via-white/0 to-transparent blur-3xl" />
+        <div className="absolute inset-x-0 bottom-4 h-8 bg-linear-to-b from-white/8 via-white/0 to-transparent" />
+      </div>
+
       {/* Subtle top fade to blend with hero */}
       <div className="pointer-events-none absolute inset-0 bg-linear-to-b from-[#0a0e27] via-[#0a0e27] to-transparent" />
 
