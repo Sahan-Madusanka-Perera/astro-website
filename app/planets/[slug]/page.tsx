@@ -117,7 +117,7 @@ export default function PlanetPage({
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.8 }}
-            className="relative w-48 h-48 mx-auto mb-8"
+            className="relative w-48 h-48 mx-auto mb-8 rounded-full overflow-hidden"
             style={{
               boxShadow: `0 0 80px ${planet.color}60`,
             }}
@@ -126,7 +126,8 @@ export default function PlanetPage({
               src={planet.icon}
               alt={planet.name}
               fill
-              className="object-contain"
+              className="object-cover"
+              priority
             />
           </motion.div>
 
