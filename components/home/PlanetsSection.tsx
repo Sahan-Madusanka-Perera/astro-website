@@ -7,22 +7,70 @@ import { PLANETS } from '@/lib/planets-data';
 
 export function PlanetsSection() {
   return (
-    <section className="py-24 bg-gradient-to-b from-black via-indigo-950/20 to-black relative overflow-hidden">
-      {/* Background decorative elements */}
-      <div className="absolute inset-0 opacity-20">
-        {[...Array(30)].map((_, i) => (
+    <section className="py-24 relative overflow-hidden bg-[#0a0e27]">
+      {/* Cosmic Background Gradients */}
+      <div className="absolute inset-0">
+        {/* Multiple layered gradients for depth */}
+        <div className="absolute inset-0 bg-gradient-to-br from-purple-900/30 via-transparent to-blue-900/30" />
+        <div className="absolute inset-0 bg-gradient-to-tl from-pink-900/20 via-transparent to-cyan-900/20" />
+        
+        {/* Nebula-like glows */}
+        <motion.div
+          className="absolute top-1/4 -left-1/4 w-96 h-96 bg-purple-600/20 rounded-full blur-3xl"
+          animate={{
+            scale: [1, 1.2, 1],
+            opacity: [0.3, 0.5, 0.3],
+          }}
+          transition={{
+            duration: 8,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+        />
+        <motion.div
+          className="absolute bottom-1/4 -right-1/4 w-96 h-96 bg-blue-600/20 rounded-full blur-3xl"
+          animate={{
+            scale: [1.2, 1, 1.2],
+            opacity: [0.5, 0.3, 0.5],
+          }}
+          transition={{
+            duration: 10,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+        />
+        <motion.div
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-indigo-600/10 rounded-full blur-3xl"
+          animate={{
+            scale: [1, 1.3, 1],
+            rotate: [0, 180, 360],
+          }}
+          transition={{
+            duration: 20,
+            repeat: Infinity,
+            ease: "linear",
+          }}
+        />
+      </div>
+
+      {/* Enhanced star field */}
+      <div className="absolute inset-0">
+        {[...Array(100)].map((_, i) => (
           <motion.div
             key={i}
-            className="absolute w-1 h-1 bg-white rounded-full"
+            className="absolute bg-white rounded-full"
             style={{
+              width: Math.random() * 2 + 1 + 'px',
+              height: Math.random() * 2 + 1 + 'px',
               left: `${Math.random() * 100}%`,
               top: `${Math.random() * 100}%`,
             }}
             animate={{
-              opacity: [0.2, 1, 0.2],
+              opacity: [0.1, 1, 0.1],
+              scale: [1, 1.5, 1],
             }}
             transition={{
-              duration: 3 + Math.random() * 2,
+              duration: 2 + Math.random() * 3,
               repeat: Infinity,
               delay: Math.random() * 2,
             }}
