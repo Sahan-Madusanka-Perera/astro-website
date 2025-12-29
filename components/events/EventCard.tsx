@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Calendar, Clock, MapPin, ExternalLink, X } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
@@ -14,6 +14,18 @@ interface EventCardProps {
 export function EventCard({ event }: EventCardProps) {
   const [isOpen, setIsOpen] = useState(false);
   const category = EVENT_CATEGORIES[event.category];
+
+  // Lock body scroll when modal is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen]);
 
   return (
     <>
@@ -82,20 +94,24 @@ export function EventCard({ event }: EventCardProps) {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               transition={{ type: "spring", duration: 0.5 }}
-              className="fixed inset-4 md:inset-auto md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-full md:max-w-3xl max-h-[90vh] bg-white rounded-2xl shadow-2xl z-50 overflow-hidden"
+              onClick={(e) => e.stopPropagation()}
+              className="fixed inset-4 md:inset-auto md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-full md:max-w-3xl md:max-h-[90vh] bg-white rounded-2xl shadow-2xl z-50 flex flex-col overflow-hidden"
             >
-              <div className="relative h-full overflow-y-auto">
-                {/* Close Button */}
+              {/* Close Button */}
+              <div className="absolute top-4 right-4 z-20">
                 <button
                   onClick={() => setIsOpen(false)}
-                  className="sticky top-4 right-4 ml-auto flex items-center justify-center w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full shadow-lg hover:bg-white transition-colors z-10"
+                  className="flex items-center justify-center w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full shadow-lg hover:bg-white transition-colors"
                 >
                   <X className="w-5 h-5 text-gray-600" />
                 </button>
+              </div>
 
+              {/* Scrollable Content */}
+              <div className="flex-1 overflow-y-auto overscroll-contain">
                 {/* Event Image */}
                 {event.image_url && (
-                  <div className="relative h-64 md:h-80 -mt-14">
+                  <div className="relative h-64 md:h-80">
                     <img
                       src={event.image_url}
                       alt={event.title}
