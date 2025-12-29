@@ -7,7 +7,7 @@ export const PLANETS: Planet[] = [
     slug: 'education',
     description: 'Fostering knowledge and learning through workshops, seminars, and educational programs.',
     icon: '/images/planet_of_education.png',
-    color: '#3B82F6', // Blue
+    color: '#7DD3FC', // Soft sky
     director: {
       id: 'd1',
       name: 'Director Name',
@@ -52,7 +52,7 @@ export const PLANETS: Planet[] = [
     slug: 'research',
     description: 'Advancing astronomical research and fostering scientific curiosity among members.',
     icon: '/images/planet_of_research.png',
-    color: '#8B5CF6', // Purple
+    color: '#A5B4FC', // Periwinkle
     director: {
       id: 'd2',
       name: 'Director Name',
@@ -97,7 +97,7 @@ export const PLANETS: Planet[] = [
     slug: 'media-marketing',
     description: 'Managing club communications, social media presence, and promotional activities.',
     icon: '/images/planet_of_media.png',
-    color: '#EC4899', // Pink
+    color: '#C084FC', // Orchid
     director: {
       id: 'd3',
       name: 'Director Name',
@@ -142,7 +142,7 @@ export const PLANETS: Planet[] = [
     slug: 'management-finance',
     description: 'Overseeing financial operations, budgeting, and administrative management.',
     icon: '/images/planet_of_management.png',
-    color: '#10B981', // Green
+    color: '#60A5FA', // Azure
     director: {
       id: 'd4',
       name: 'Director Name',
@@ -187,7 +187,7 @@ export const PLANETS: Planet[] = [
     slug: 'observation',
     description: 'Organizing stargazing sessions, telescope operations, and observational activities.',
     icon: '/images/planet_of_observation.png',
-    color: '#F59E0B', // Amber
+    color: '#38BDF8', // Cyan
     director: {
       id: 'd5',
       name: 'Director Name',
@@ -232,7 +232,7 @@ export const PLANETS: Planet[] = [
     slug: 'organizing',
     description: 'Planning and executing club events, trips, and various activities.',
     icon: '/images/planet_of_organizing.png',
-    color: '#06B6D4', // Cyan
+    color: '#22D3EE', // Teal
     director: {
       id: 'd6',
       name: 'Director Name',
