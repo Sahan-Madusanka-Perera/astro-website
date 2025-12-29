@@ -1,6 +1,7 @@
 import { Hero } from '@/components/home/Hero';
 import { AboutSection } from '@/components/home/AboutSection';
 import { FeaturedEvents } from '@/components/home/FeaturedEvents';
+import { EventCalendar } from '@/components/events/EventCalendar';
 import { PlanetsSection } from '@/components/home/PlanetsSection';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
@@ -16,6 +17,7 @@ export default function HomePage() {
       </div>
       <AboutSection />
       <FeaturedEvents />
+      <EventCalendar />
       
       {/* Gallery Section */}
       <section id="gallery" className="py-20 bg-gray-50">

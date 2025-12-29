@@ -1,14 +1,19 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useState } from 'react';
-import { Rocket, Menu, X } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const navigation = [
   { name: 'Home', href: '/' },
   { name: 'Events', href: '#events' },
+  { name: 'Media', href: '#media' },
   { name: 'Gallery', href: '#gallery' },
+  { name: 'Board', href: '/board' },
+  { name: 'Constitution', href: '#constitution' },
+  { name: 'Contact Us', href: '#contact' },
   { name: 'About', href: '#about' },
 ];
 
@@ -20,8 +25,17 @@ export function Navbar() {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 text-white">
-            <Rocket className="h-8 w-8 text-purple-400" />
+          <Link href="/" className="flex items-center gap-3 text-white">
+            <div className="relative h-22 w-22">
+              <Image
+                src="/images/astro_logo.png"
+                alt="USJ Astro Logo"
+                fill
+                className="object-contain"
+                sizes="100px"
+                priority
+              />
+            </div>
             <span className="font-bold text-lg hidden sm:inline">
               USJ Astronomy Club
             </span>
