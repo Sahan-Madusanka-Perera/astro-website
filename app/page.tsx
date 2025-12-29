@@ -1,6 +1,7 @@
 import { Hero } from '@/components/home/Hero';
 import { AboutSection } from '@/components/home/AboutSection';
 import { FeaturedEvents } from '@/components/home/FeaturedEvents';
+import { PlanetsSection } from '@/components/home/PlanetsSection';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { GalleryGrid } from '@/components/gallery/GalleryGrid';
@@ -10,6 +11,9 @@ export default function HomePage() {
     <main>
       <Navbar />
       <Hero />
+      <div id="planets">
+        <PlanetsSection />
+      </div>
       <AboutSection />
       <FeaturedEvents />
       
