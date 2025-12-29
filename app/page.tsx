@@ -11,7 +11,7 @@ export default function HomePage() {
     <main>
       <Navbar />
       <Hero />
-      <div id="planets">
+      <div id="planets" className="-mt-28 pt-28">
         <PlanetsSection />
       </div>
       <AboutSection />

@@ -7,7 +7,7 @@ import { PLANETS } from '@/lib/planets-data';
 
 export function PlanetsSection() {
   return (
-    <section className="py-24 relative overflow-hidden bg-[#0a0e27]">
+    <section className="py-48 relative overflow-hidden bg-[#0a0e27]">
       {/* Seamless divider from hero: soft horizon glow and faint ring */}
       <div className="pointer-events-none absolute -top-12 left-1/2 w-[120%] h-24 -translate-x-1/2">
         <div className="absolute inset-x-0 bottom-0 h-px bg-white/10" />
@@ -80,7 +80,7 @@ export function PlanetsSection() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="text-center mb-16"
+          className="text-center mb-16 pt-12"
         >
           <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
             Our <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">Planets</span>
