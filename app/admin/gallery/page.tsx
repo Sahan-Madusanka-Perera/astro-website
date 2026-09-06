@@ -1,45 +1,47 @@
 'use client';
 
 import { useState } from 'react';
+import { Plus, Trash2, Images, ArrowLeft, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 import { useGallery } from '@/hooks/useGallery';
 import { ImageUpload } from '@/components/admin/ImageUpload';
-import { Plus, Trash2, Image as ImageIcon } from 'lucide-react';
-import { toast } from 'sonner';
 
 export default function AdminGalleryPage() {
   const { images, isLoading, uploadImage, deleteImage } = useGallery();
-  const [showUploadForm, setShowUploadForm] = useState(false);
+  const [showUpload, setShowUpload] = useState(false);
+  const [deleting, setDeleting] = useState<string | null>(null);
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this image?')) return;
-
+  const handleDelete = async (id: string, title: string) => {
+    if (!confirm(`Delete “${title}”? This removes it from the public gallery immediately and cannot be undone.`)) return;
     try {
+      setDeleting(id);
       await deleteImage(id);
-      toast.success('Image deleted successfully');
-    } catch (error) {
-      toast.error('Failed to delete image');
+      toast.success('Image deleted');
+    } catch {
+      toast.error('Could not delete the image. Try again.');
+    } finally {
+      setDeleting(null);
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600" />
-      </div>
-    );
-  }
-
-  if (showUploadForm) {
+  if (showUpload) {
     return (
       <div>
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">Upload Image</h1>
-        <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200 max-w-2xl">
+        <button
+          onClick={() => setShowUpload(false)}
+          className="group inline-flex items-center gap-2 text-[0.875rem] text-star-faint transition-colors hover:text-azure-glow"
+        >
+          <ArrowLeft className="h-4 w-4 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:-translate-x-1" />
+          Back to gallery
+        </button>
+        <h1 className="display mt-6 text-[1.875rem]">Upload image</h1>
+        <div className="mt-8 max-w-2xl rounded-sm border border-rule bg-void-1 p-6 md:p-8">
           <ImageUpload
             onSubmit={async (formData) => {
               await uploadImage(formData);
-              setShowUploadForm(false);
+              setShowUpload(false);
             }}
-            onCancel={() => setShowUploadForm(false)}
+            onCancel={() => setShowUpload(false)}
           />
         </div>
       </div>
@@ -48,69 +50,83 @@ export default function AdminGalleryPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-8">
+      <header className="flex flex-wrap items-end justify-between gap-5">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Gallery</h1>
-          <p className="text-gray-600 mt-2">Manage your astronomy club gallery</p>
+          <h1 className="display text-[1.875rem]">Gallery</h1>
+          <p className="mt-2.5 text-[0.9375rem] text-star-faint">
+            {isLoading
+              ? 'Loading…'
+              : `${images.length} ${images.length === 1 ? 'image' : 'images'} on the public site.`}
+          </p>
         </div>
         <button
-          onClick={() => setShowUploadForm(true)}
-          className="flex items-center gap-2 bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors"
+          onClick={() => setShowUpload(true)}
+          className="inline-flex shrink-0 items-center gap-2 rounded-full bg-azure px-5 py-2.5 text-[0.9375rem] font-medium text-white transition-colors duration-400 hover:bg-azure-lit"
         >
-          <Plus className="h-5 w-5" />
-          Upload Image
+          <Plus className="h-4 w-4" />
+          Upload image
         </button>
-      </div>
+      </header>
 
-      {images.length === 0 ? (
-        <div className="bg-white rounded-lg shadow-sm p-12 border border-gray-200 text-center">
-          <ImageIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-xl font-semibold text-gray-900 mb-2">
-            No images yet
-          </h3>
-          <p className="text-gray-600 mb-6">
-            Start building your gallery by uploading images
+      {isLoading ? (
+        <div className="mt-9 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+          {[0, 1, 2, 3, 4, 5, 6, 7].map((i) => (
+            <div key={i} className="aspect-square rounded-sm border border-rule bg-white/[0.025]" />
+          ))}
+        </div>
+      ) : images.length === 0 ? (
+        <div className="mt-9 flex flex-col items-center rounded-sm border border-dashed border-rule-lit px-6 py-20 text-center">
+          <Images className="h-7 w-7 text-star-ghost" strokeWidth={1.4} />
+          <p className="mt-5 text-[1.0625rem] text-starlight">No images yet</p>
+          <p className="note mt-3 max-w-[46ch]">
+            The public gallery stays empty until you upload the first one.
           </p>
           <button
-            onClick={() => setShowUploadForm(true)}
-            className="inline-flex items-center gap-2 bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition-colors"
+            onClick={() => setShowUpload(true)}
+            className="mt-7 inline-flex items-center gap-2 rounded-full bg-azure px-6 py-3 text-[0.9375rem] font-medium text-white transition-colors duration-400 hover:bg-azure-lit"
           >
-            <Plus className="h-5 w-5" />
-            Upload Image
+            <Plus className="h-4 w-4" />
+            Upload an image
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {images.map((image) => (
-            <div
-              key={image.id}
-              className="group relative aspect-square rounded-lg overflow-hidden bg-gray-100"
-            >
-              <img
-                src={image.image_url}
-                alt={image.title}
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center p-4">
-                <h3 className="text-white font-semibold text-center mb-2">
-                  {image.title}
-                </h3>
-                {image.description && (
-                  <p className="text-white/80 text-sm text-center mb-4 line-clamp-2">
-                    {image.description}
-                  </p>
-                )}
-                <button
-                  onClick={() => handleDelete(image.id)}
-                  className="flex items-center gap-2 bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors"
-                >
-                  <Trash2 className="h-4 w-4" />
-                  Delete
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
+        <ul className="mt-9 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+          {images.map((image) => {
+            const isDeleting = deleting === image.id;
+            return (
+              <li
+                key={image.id}
+                className="group relative overflow-hidden rounded-sm border border-rule bg-void-1"
+                style={{ opacity: isDeleting ? 0.5 : 1 }}
+              >
+                <div className="relative aspect-square">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={image.image_url}
+                    alt={image.title}
+                    loading="lazy"
+                    className="h-full w-full object-cover"
+                  />
+                  <button
+                    onClick={() => handleDelete(image.id, image.title)}
+                    disabled={isDeleting}
+                    aria-label={`Delete ${image.title}`}
+                    className="absolute right-2 top-2 grid h-9 w-9 place-items-center rounded-sm border border-rule-lit bg-void/75 text-star-faint opacity-0 backdrop-blur-md transition-[opacity,color,border-color] duration-300 hover:border-destructive/60 hover:text-destructive focus-visible:opacity-100 group-hover:opacity-100"
+                  >
+                    {isDeleting ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Trash2 className="h-4 w-4" strokeWidth={1.7} />
+                    )}
+                  </button>
+                </div>
+                <div className="border-t border-rule px-3 py-2.5">
+                  <p className="truncate text-[0.8125rem] text-starlight">{image.title}</p>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
       )}
     </div>
   );

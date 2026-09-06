@@ -1,40 +1,29 @@
 import { Hero } from '@/components/home/Hero';
-import { AboutSection } from '@/components/home/AboutSection';
-import { FeaturedEvents } from '@/components/home/FeaturedEvents';
-import { EventCalendar } from '@/components/events/EventCalendar';
 import { PlanetsSection } from '@/components/home/PlanetsSection';
+import { AboutSection } from '@/components/home/AboutSection';
+import { EventsSection } from '@/components/home/EventsSection';
+import { GallerySection } from '@/components/home/GallerySection';
+import { FromOrbitSection } from '@/components/sky/FromOrbitSection';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
-import { GalleryGrid } from '@/components/gallery/GalleryGrid';
 
+/* The scroll is paced deliberately: the sky opens, the divisions name
+   themselves, the programme explains itself, azure takes the whole width once,
+   then events and pictures do the practical work. The club's own photographs
+   lead; the wider sky follows, and the footer closes it. */
 export default function HomePage() {
   return (
-    <main>
+    <>
       <Navbar />
-      <Hero />
-      <div id="planets" className="-mt-28 pt-28">
+      <main id="main">
+        <Hero />
         <PlanetsSection />
-      </div>
-      <AboutSection />
-      <FeaturedEvents />
-      <EventCalendar />
-      
-      {/* Gallery Section */}
-      <section id="gallery" className="py-20 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-              Gallery
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Explore our collection of celestial captures and club moments
-            </p>
-          </div>
-          <GalleryGrid />
-        </div>
-      </section>
-
+        <AboutSection />
+        <EventsSection />
+        <GallerySection />
+        <FromOrbitSection />
+      </main>
       <Footer />
-    </main>
+    </>
   );
 }

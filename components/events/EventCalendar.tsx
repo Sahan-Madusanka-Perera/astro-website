@@ -1,166 +1,196 @@
 'use client';
 
-import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon } from 'lucide-react';
-import { useEvents } from '@/hooks/useEvents';
+import { useMemo, useState } from 'react';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+import { ChevronLeft, ChevronRight, Telescope } from 'lucide-react';
 import { EventCard } from './EventCard';
+import { EventSkeleton } from './EventSkeleton';
+import type { Event } from '@/types/event';
+import { cn } from '@/lib/utils';
+
+/* ---------------------------------------------------------------------------
+   The month browser.
+
+   A twelve-cell scrubber rather than a page of month buttons: each cell is a
+   tick on a year, and the ones holding events carry a mark. It reads as an
+   instrument scale, and it fits on a phone without scrolling.
+--------------------------------------------------------------------------- */
 
 const MONTHS = [
+  'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+];
+const MONTHS_FULL = [
   'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December'
+  'July', 'August', 'September', 'October', 'November', 'December',
 ];
 
-export function EventCalendar() {
-  const currentDate = new Date();
-  const [selectedMonth, setSelectedMonth] = useState(currentDate.getMonth());
-  const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear());
-  const { events, isLoading } = useEvents();
+const EASE = [0.16, 1, 0.3, 1] as const;
 
-  // Filter events for selected month
-  const filteredEvents = events.filter((event) => {
-    const eventDate = new Date(event.date);
-    return eventDate.getMonth() === selectedMonth && eventDate.getFullYear() === selectedYear;
-  });
+export function EventCalendar({
+  events,
+  isLoading,
+}: {
+  events: Event[];
+  isLoading: boolean;
+}) {
+  const now = new Date();
+  const [month, setMonth] = useState(now.getMonth());
+  const [year, setYear] = useState(now.getFullYear());
+  const reduced = useReducedMotion();
 
-  const handlePrevYear = () => setSelectedYear(selectedYear - 1);
-  const handleNextYear = () => setSelectedYear(selectedYear + 1);
+  /* One pass over the events gives both the per-month counts and the
+     selected month's list. */
+  const { counts, selected } = useMemo(() => {
+    const counts = new Array(12).fill(0) as number[];
+    const selected: Event[] = [];
+    for (const e of events) {
+      const d = new Date(e.date);
+      if (Number.isNaN(d.getTime()) || d.getFullYear() !== year) continue;
+      counts[d.getMonth()] += 1;
+      if (d.getMonth() === month) selected.push(e);
+    }
+    selected.sort((a, b) => +new Date(a.date) - +new Date(b.date));
+    return { counts, selected };
+  }, [events, month, year]);
+
+  const total = counts.reduce((a, b) => a + b, 0);
 
   return (
-    <section id="all-events" className="py-20 bg-gradient-to-b from-gray-50 to-white">
-      <div className="container mx-auto px-4">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-12"
-        >
-          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-            Event Calendar
-          </h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Browse events by month and plan your cosmic adventures
-          </p>
-        </motion.div>
-
-        {/* Year Selector */}
-        <div className="flex items-center justify-center gap-4 mb-8">
+    <div>
+      {/* ── Year + scale ─────────────────────────────────────────────── */}
+      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-rule pb-5">
+        <div className="flex items-center gap-1">
           <button
-            onClick={handlePrevYear}
-            className="p-2 rounded-full hover:bg-gray-100 transition-colors"
-            aria-label="Previous year"
+            onClick={() => setYear((y) => y - 1)}
+            aria-label={`Go to ${year - 1}`}
+            className="grid h-10 w-10 place-items-center rounded-full text-star-faint transition-colors hover:bg-white/[0.06] hover:text-starlight"
           >
-            <ChevronLeft className="w-6 h-6 text-gray-600" />
+            <ChevronLeft className="h-4 w-4" />
           </button>
-          <span className="text-2xl font-bold text-gray-900 min-w-[100px] text-center">
-            {selectedYear}
+          <span
+            className="display min-w-[5rem] text-center text-[1.75rem] tabular-nums"
+            data-numeric
+          >
+            {year}
           </span>
           <button
-            onClick={handleNextYear}
-            className="p-2 rounded-full hover:bg-gray-100 transition-colors"
-            aria-label="Next year"
+            onClick={() => setYear((y) => y + 1)}
+            aria-label={`Go to ${year + 1}`}
+            className="grid h-10 w-10 place-items-center rounded-full text-star-faint transition-colors hover:bg-white/[0.06] hover:text-starlight"
           >
-            <ChevronRight className="w-6 h-6 text-gray-600" />
+            <ChevronRight className="h-4 w-4" />
           </button>
         </div>
 
-        {/* Month Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 max-w-5xl mx-auto mb-12">
-          {MONTHS.map((month, index) => {
-            const isSelected = selectedMonth === index;
-            const monthEvents = events.filter((event) => {
-              const eventDate = new Date(event.date);
-              return eventDate.getMonth() === index && eventDate.getFullYear() === selectedYear;
-            });
-            const hasEvents = monthEvents.length > 0;
+        <p className="label-chart">
+          {total} {total === 1 ? 'event' : 'events'} logged in {year}
+        </p>
+      </div>
 
-            return (
-              <motion.button
-                key={month}
-                onClick={() => setSelectedMonth(index)}
-                initial={{ opacity: 0, scale: 0.9 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.3, delay: index * 0.03 }}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className={`
-                  relative p-6 rounded-2xl font-semibold text-lg transition-all duration-300
-                  ${isSelected 
-                    ? 'bg-gradient-to-br from-purple-600 to-purple-700 text-white shadow-xl shadow-purple-500/30' 
-                    : 'bg-white text-gray-700 hover:bg-gray-50 border-2 border-gray-100 hover:border-purple-200'
-                  }
-                `}
-              >
-                {month}
-                {hasEvents && (
-                  <span className={`
-                    absolute top-2 right-2 flex h-3 w-3 rounded-full
-                    ${isSelected ? 'bg-white' : 'bg-purple-500'}
-                  `}>
-                    <span className={`
-                      animate-ping absolute inline-flex h-full w-full rounded-full opacity-75
-                      ${isSelected ? 'bg-white' : 'bg-purple-400'}
-                    `} />
-                  </span>
-                )}
-              </motion.button>
-            );
-          })}
-        </div>
-
-        {/* Selected Month Events */}
-        <div className="max-w-6xl mx-auto">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={`${selectedMonth}-${selectedYear}`}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.3 }}
+      {/* ── The twelve ───────────────────────────────────────────────── */}
+      <div
+        role="tablist"
+        aria-label="Select a month"
+        className="mt-5 grid grid-cols-6 gap-1.5 sm:gap-2 md:grid-cols-12"
+      >
+        {MONTHS.map((m, i) => {
+          const isSel = i === month;
+          const has = counts[i] > 0;
+          const isNow = i === now.getMonth() && year === now.getFullYear();
+          return (
+            <button
+              key={m}
+              role="tab"
+              aria-selected={isSel}
+              onClick={() => setMonth(i)}
+              title={`${MONTHS_FULL[i]} ${year} — ${counts[i]} ${counts[i] === 1 ? 'event' : 'events'}`}
+              className={cn(
+                'group relative flex flex-col items-center gap-2 rounded-sm px-1 py-3 transition-colors duration-400',
+                isSel
+                  ? 'bg-azure/16 text-starlight'
+                  : 'text-star-faint hover:bg-white/[0.045] hover:text-star-dim'
+              )}
             >
-              <div className="mb-8 text-center">
-                <h3 className="text-3xl font-bold text-gray-900 mb-2">
-                  {MONTHS[selectedMonth]} {selectedYear}
-                </h3>
-                <p className="text-gray-600">
-                  {filteredEvents.length} {filteredEvents.length === 1 ? 'event' : 'events'} scheduled
+              {/* tick */}
+              <span
+                aria-hidden
+                className={cn(
+                  'block w-px transition-[height,background-color] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]',
+                  isSel
+                    ? 'h-5 w-0.5 bg-azure-glow'
+                    : has
+                      ? 'h-4 w-0.5 bg-azure-lit group-hover:bg-azure-glow'
+                      : 'h-1.5 bg-star-ghost/45'
+                )}
+              />
+              <span className="label-chart text-[0.625rem] text-current">{m}</span>
+
+              {/* today's month, marked in sodium — the one warm on the page */}
+              {isNow && (
+                <span
+                  aria-hidden
+                  className="absolute inset-x-0 -bottom-px mx-auto h-px w-5 bg-sodium"
+                />
+              )}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* ── The month ────────────────────────────────────────────────── */}
+      <div className="mt-12">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={`${month}-${year}`}
+            initial={{ opacity: 0, y: reduced ? 0 : 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: reduced ? 0 : -10 }}
+            transition={{ duration: 0.4, ease: EASE }}
+          >
+            <div className="mb-8 flex items-baseline justify-between gap-4 border-b border-rule pb-4">
+              <h3 className="display text-[1.5rem] md:text-[1.75rem]">
+                {MONTHS_FULL[month]}{' '}
+                <span className="text-star-ghost" data-numeric>{year}</span>
+              </h3>
+              <span className="label-chart shrink-0">
+                {selected.length} {selected.length === 1 ? 'entry' : 'entries'}
+              </span>
+            </div>
+
+            {isLoading ? (
+              <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                {[0, 1, 2].map((i) => <EventSkeleton key={i} />)}
+              </div>
+            ) : selected.length === 0 ? (
+              <div className="flex flex-col items-center rounded-sm border border-dashed border-rule-lit px-6 py-20 text-center">
+                <Telescope className="h-7 w-7 text-star-ghost" strokeWidth={1.4} />
+                <p className="mt-5 text-[1.0625rem] text-star-dim">
+                  Nothing scheduled in {MONTHS_FULL[month]}.
+                </p>
+                <p className="note mt-3 max-w-[46ch]">
+                  {total > 0
+                    ? 'Try another month on the scale above.'
+                    : 'The club posts observation nights about a fortnight ahead.'}
                 </p>
               </div>
-
-              {isLoading ? (
-                <div className="flex items-center justify-center py-12">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600" />
-                </div>
-              ) : filteredEvents.length === 0 ? (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="text-center py-16 bg-white rounded-3xl border-2 border-dashed border-gray-200"
-                >
-                  <CalendarIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-500 text-lg font-medium">No events scheduled for this month</p>
-                  <p className="text-gray-400 text-sm mt-2">Check back later for updates</p>
-                </motion.div>
-              ) : (
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {filteredEvents.map((event, index) => (
-                    <motion.div
-                      key={event.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.4, delay: index * 0.1 }}
-                    >
-                      <EventCard event={event} />
-                    </motion.div>
-                  ))}
-                </div>
-              )}
-            </motion.div>
-          </AnimatePresence>
-        </div>
+            ) : (
+              <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                {selected.map((event, i) => (
+                  <motion.div
+                    key={event.id}
+                    initial={{ opacity: 0, y: reduced ? 0 : 18 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: i * 0.06, ease: EASE }}
+                  >
+                    <EventCard event={event} />
+                  </motion.div>
+                ))}
+              </div>
+            )}
+          </motion.div>
+        </AnimatePresence>
       </div>
-    </section>
+    </div>
   );
 }

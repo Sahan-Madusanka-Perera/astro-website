@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { Loader2 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
 export function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -9,22 +10,19 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth();
 
   useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      router.push('/login');
-    }
+    if (!isLoading && !isAuthenticated) router.push('/login');
   }, [isAuthenticated, isLoading, router]);
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600" />
+      <div className="flex min-h-[100svh] flex-col items-center justify-center gap-4 bg-void">
+        <Loader2 className="h-5 w-5 animate-spin text-azure-lit" />
+        <p className="label-chart">Checking your session</p>
       </div>
     );
   }
 
-  if (!isAuthenticated) {
-    return null;
-  }
+  if (!isAuthenticated) return null;
 
   return <>{children}</>;
 }

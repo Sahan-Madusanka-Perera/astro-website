@@ -1,148 +1,96 @@
 'use client';
 
-import { motion } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
 import { PLANETS } from '@/lib/planets-data';
+import { StarField } from '@/components/cosmos/StarField';
+import { Section, Shell, SectionHead } from '@/components/layout/Section';
+import { Reveal } from '@/components/motion/Reveal';
+
+/* ---------------------------------------------------------------------------
+   The club's six divisions.
+
+   Drawn as an ecliptic rather than a card grid: one hairline runs the width of
+   the section and every planet sits on it, the way bodies sit on the plane of
+   the solar system. Hovering drops a tick from the line to the label, which is
+   how a chart points at a thing.
+--------------------------------------------------------------------------- */
 
 export function PlanetsSection() {
   return (
-    <section className="py-48 relative overflow-hidden bg-[#0a0e27]">
-      {/* Seamless divider from hero: soft horizon glow and faint ring */}
-      <div className="pointer-events-none absolute -top-12 left-1/2 w-[120%] h-24 -translate-x-1/2">
-        <div className="absolute inset-x-0 bottom-0 h-px bg-white/10" />
-        <div className="absolute inset-0 bg-radial from-white/10 via-white/0 to-transparent blur-3xl" />
-        <div className="absolute inset-x-0 bottom-4 h-8 bg-linear-to-b from-white/8 via-white/0 to-transparent" />
-      </div>
+    <Section id="planets" className="bg-void pt-28 pb-24 md:pt-40 md:pb-32">
+      <StarField density={110} meteorRate={0} className="fade-edge-y opacity-70" />
 
-      {/* Subtle top fade to blend with hero */}
-      <div className="pointer-events-none absolute inset-0 bg-linear-to-b from-[#0a0e27] via-[#0a0e27] to-transparent" />
+      <Shell className="relative z-10">
+        <SectionHead
+          title={<>Six planets,<br />one orbit.</>}
+          lede="The club runs as six divisions. Each keeps its own people, its own remit, and its own corner of what we do — and they all turn around the same thing."
+          aside={
+            <p className="label-chart">
+              {PLANETS.length} divisions / est. 2017
+            </p>
+          }
+        />
 
-      {/* Animated Background Stars - matching hero section */}
-      <div className="absolute inset-0">
-        {[...Array(100)].map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute bg-white rounded-full"
-            style={{
-              width: Math.random() * 3 + 'px',
-              height: Math.random() * 3 + 'px',
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-            }}
-            animate={{
-              opacity: [0.1, 1, 0.1],
-              scale: [1, 1.2, 1],
-            }}
-            transition={{
-              duration: 3 + Math.random() * 3,
-              repeat: Infinity,
-              delay: Math.random() * 2,
-            }}
+        {/* ── The ecliptic ─────────────────────────────────────────────── */}
+        <div className="relative mt-20 md:mt-28">
+          <div
+            aria-hidden
+            className="absolute inset-x-0 top-[3.25rem] hidden h-px bg-gradient-to-r from-transparent via-azure-lit/25 to-transparent lg:block lg:top-[4.5rem]"
           />
-        ))}
-      </div>
 
-      {/* Very subtle vignette for depth (same palette as hero) */}
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute inset-0 bg-radial from-transparent via-transparent to-[#0a0e27]" />
-      </div>
+          <ul className="relative grid grid-cols-2 gap-x-6 gap-y-14 sm:grid-cols-3 sm:gap-x-8 lg:grid-cols-6 lg:gap-x-5">
+            {PLANETS.map((planet, i) => {
+              const short = planet.name.replace('Planet of ', '');
+              return (
+                <Reveal as="li" key={planet.id} delay={i * 65}>
+                  <Link
+                    href={`/planets/${planet.slug}`}
+                    className="group flex flex-col items-center text-center"
+                  >
+                    {/* the body */}
+                    <span className="relative block aspect-square w-full max-w-[7.5rem] lg:max-w-[9rem]">
+                      <span
+                        aria-hidden
+                        className="absolute inset-[-18%] rounded-full opacity-0 blur-2xl transition-opacity duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:opacity-100"
+                        style={{
+                          background:
+                            'radial-gradient(circle, rgba(41,163,221,0.55), transparent 68%)',
+                        }}
+                      />
+                      {/* Still. Six bodies turning forever is ambient noise,
+                          not motion with something to say — the star field is
+                          the one thing on this page that moves by itself. */}
+                      <span className="relative block h-full w-full overflow-hidden rounded-full ring-1 ring-white/[0.09] transition-[transform,box-shadow] duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.07] group-hover:shadow-[0_0_50px_-12px_rgba(41,163,221,0.75)]">
+                        <Image
+                          src={planet.icon}
+                          alt=""
+                          fill
+                          sizes="(max-width: 640px) 120px, (max-width: 1024px) 140px, 144px"
+                          className="object-cover"
+                        />
+                      </span>
+                    </span>
 
-      {/* Enhanced star field */}
-      <div className="absolute inset-0">
-        {[...Array(100)].map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute bg-white rounded-full"
-            style={{
-              width: Math.random() * 2 + 1 + 'px',
-              height: Math.random() * 2 + 1 + 'px',
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-            }}
-            animate={{
-              opacity: [0.1, 1, 0.1],
-              scale: [1, 1.5, 1],
-            }}
-            transition={{
-              duration: 2 + Math.random() * 3,
-              repeat: Infinity,
-              delay: Math.random() * 2,
-            }}
-          />
-        ))}
-      </div>
+                    {/* the tick that points at the label */}
+                    <span
+                      aria-hidden
+                      className="mt-3 block h-4 w-px origin-top scale-y-0 bg-gradient-to-b from-azure-lit/70 to-transparent transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-y-100"
+                    />
 
-      <div className="container mx-auto px-4 relative z-10">
-        {/* Section Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-16 pt-12"
-        >
-          <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
-            Our <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">Planets</span>
-          </h2>
-          <p className="text-xl text-gray-300 max-w-2xl mx-auto">
-            Explore the different divisions of our astronomy club
-          </p>
-        </motion.div>
-
-        {/* Planets Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 md:gap-12">
-          {PLANETS.map((planet, index) => (
-            <motion.div
-              key={planet.id}
-              initial={{ opacity: 0, scale: 0.8 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
-            >
-              <Link
-                href={`/planets/${planet.slug}`}
-                className="group block"
-              >
-                <motion.div
-                  whileHover={{ scale: 1.1, rotate: 5 }}
-                  whileTap={{ scale: 0.95 }}
-                  transition={{ type: "spring", stiffness: 300 }}
-                  className="relative aspect-square rounded-full overflow-hidden shadow-2xl"
-                  style={{
-                    boxShadow: `0 0 40px ${planet.color}40`,
-                  }}
-                >
-                  <Image
-                    src={planet.icon}
-                    alt={planet.name}
-                    fill
-                    className="object-cover group-hover:scale-110 transition-transform duration-300"
-                  />
-                  {/* Hover overlay */}
-                  <div 
-                    className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                    style={{
-                      background: `linear-gradient(135deg, ${planet.color}40, transparent)`,
-                    }}
-                  />
-                </motion.div>
-                
-                {/* Planet Name */}
-                <motion.h3
-                  className="text-center mt-4 text-sm md:text-base font-semibold text-white group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r transition-all duration-300"
-                  style={{
-                    '--tw-gradient-from': planet.color,
-                    '--tw-gradient-to': planet.color + '80',
-                  } as any}
-                >
-                  {planet.name.replace('Planet of ', '')}
-                </motion.h3>
-              </Link>
-            </motion.div>
-          ))}
+                    <span className="mt-1 block text-[0.9375rem] font-medium leading-snug text-starlight transition-colors duration-500 group-hover:text-azure-glow">
+                      {short}
+                    </span>
+                    <span className="label-chart mt-2 block opacity-0 transition-opacity duration-500 group-hover:opacity-100">
+                      {planet.managers.length + 1} people
+                    </span>
+                  </Link>
+                </Reveal>
+              );
+            })}
+          </ul>
         </div>
-      </div>
-    </section>
+      </Shell>
+    </Section>
   );
 }

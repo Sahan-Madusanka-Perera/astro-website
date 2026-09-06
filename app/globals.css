@@ -3,123 +3,271 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* ============================================================================
+   J'PURA ASTRONOMY CLUB — DESIGN SYSTEM
+   Derived from the club seal: a mission patch with an azure sky inside it.
+   One continuous void from nav to footer. Azure is the only chromatic voice.
+   ========================================================================= */
+
+@theme {
+  /* ── Void: the page ground, four steps of depth ────────────────────────── */
+  --color-void:        #04060f;  /* deepest — page ground                     */
+  --color-void-1:      #070b18;  /* raised region                             */
+  --color-void-2:      #0b1120;  /* card / panel                              */
+  --color-void-3:      #111a2e;  /* hovered panel, inputs                     */
+
+  /* ── Azure: lifted straight off the seal ───────────────────────────────── */
+  --color-patch:       #004870;  /* seal rim navy                             */
+  --color-azure-deep:  #0068a0;
+  --color-azure:       #0080c0;  /* the seal's core blue — the brand          */
+  --color-azure-lit:   #29a3dd;  /* interactive, links                        */
+  --color-azure-glow:  #6fd0f7;  /* highlights, small text on dark            */
+  --color-azure-haze:  #b6e6ff;  /* faintest — captions on azure fields       */
+
+  /* ── Sodium: the horizon glow of a city seen from the field.
+        One role only: live / now / today. Never decorative. ───────────────── */
+  --color-sodium:      #f0b429;
+
+  /* ── Starlight: the type ramp ──────────────────────────────────────────── */
+  --color-starlight:   #f2f6fb;  /* headings                                  */
+  --color-star-dim:    #b3c0d4;  /* body — 8.9:1 on void                      */
+  --color-star-faint:  #7f8ea8;  /* captions — 4.8:1 on void                  */
+  --color-star-ghost:  #4b5a75;  /* rules, disabled                           */
+
+  /* ── Instrument hairlines ──────────────────────────────────────────────── */
+  --color-rule:        oklch(1 0 0 / 8%);
+  --color-rule-lit:    oklch(1 0 0 / 16%);
+
+  /* ── Type ──────────────────────────────────────────────────────────────── */
+  --font-display: var(--font-archivo), "Helvetica Neue", Arial, sans-serif;
+  --font-sans:    var(--font-archivo), "Helvetica Neue", Arial, sans-serif;
+  --font-mono:    var(--font-jetbrains), ui-monospace, "SF Mono", monospace;
+
+  /* ── Motion: one curve family, exponential ease-out ────────────────────── */
+  --ease-out-expo:  cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out-soft:  cubic-bezier(0.33, 1, 0.68, 1);
+  --ease-in-out-soft: cubic-bezier(0.65, 0, 0.35, 1);
+
+  --radius-instrument: 2px;
+}
+
+/* shadcn-compat surface (admin + sonner read these) — retuned to the void */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
-  --color-ring: var(--ring);
-  --color-input: var(--input);
-  --color-border: var(--border);
-  --color-destructive: var(--destructive);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-accent: var(--accent);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-muted: var(--muted);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-secondary: var(--secondary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-primary: var(--primary);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-popover: var(--popover);
-  --color-card-foreground: var(--card-foreground);
-  --color-card: var(--card);
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
-  --radius-2xl: calc(var(--radius) + 8px);
-  --radius-3xl: calc(var(--radius) + 12px);
-  --radius-4xl: calc(var(--radius) + 16px);
-}
-
-:root {
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.129 0.042 264.695);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.129 0.042 264.695);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.129 0.042 264.695);
-  --primary: oklch(0.208 0.042 265.755);
-  --primary-foreground: oklch(0.984 0.003 247.858);
-  --secondary: oklch(0.968 0.007 247.896);
-  --secondary-foreground: oklch(0.208 0.042 265.755);
-  --muted: oklch(0.968 0.007 247.896);
-  --muted-foreground: oklch(0.554 0.046 257.417);
-  --accent: oklch(0.968 0.007 247.896);
-  --accent-foreground: oklch(0.208 0.042 265.755);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.929 0.013 255.508);
-  --input: oklch(0.929 0.013 255.508);
-  --ring: oklch(0.704 0.04 256.788);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.984 0.003 247.858);
-  --sidebar-foreground: oklch(0.129 0.042 264.695);
-  --sidebar-primary: oklch(0.208 0.042 265.755);
-  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-accent: oklch(0.968 0.007 247.896);
-  --sidebar-accent-foreground: oklch(0.208 0.042 265.755);
-  --sidebar-border: oklch(0.929 0.013 255.508);
-  --sidebar-ring: oklch(0.704 0.04 256.788);
-}
-
-.dark {
-  --background: oklch(0.129 0.042 264.695);
-  --foreground: oklch(0.984 0.003 247.858);
-  --card: oklch(0.208 0.042 265.755);
-  --card-foreground: oklch(0.984 0.003 247.858);
-  --popover: oklch(0.208 0.042 265.755);
-  --popover-foreground: oklch(0.984 0.003 247.858);
-  --primary: oklch(0.929 0.013 255.508);
-  --primary-foreground: oklch(0.208 0.042 265.755);
-  --secondary: oklch(0.279 0.041 260.031);
-  --secondary-foreground: oklch(0.984 0.003 247.858);
-  --muted: oklch(0.279 0.041 260.031);
-  --muted-foreground: oklch(0.704 0.04 256.788);
-  --accent: oklch(0.279 0.041 260.031);
-  --accent-foreground: oklch(0.984 0.003 247.858);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.551 0.027 264.364);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.208 0.042 265.755);
-  --sidebar-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-accent: oklch(0.279 0.041 260.031);
-  --sidebar-accent-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.551 0.027 264.364);
+  --color-background: var(--color-void);
+  --color-foreground: var(--color-starlight);
+  --color-card: var(--color-void-2);
+  --color-card-foreground: var(--color-starlight);
+  --color-popover: var(--color-void-2);
+  --color-popover-foreground: var(--color-starlight);
+  --color-primary: var(--color-azure);
+  --color-primary-foreground: #ffffff;
+  --color-secondary: var(--color-void-3);
+  --color-secondary-foreground: var(--color-starlight);
+  --color-muted: var(--color-void-3);
+  --color-muted-foreground: var(--color-star-faint);
+  --color-accent: var(--color-void-3);
+  --color-accent-foreground: var(--color-starlight);
+  --color-destructive: #f26d6d;
+  --color-border: var(--color-rule);
+  --color-input: var(--color-rule-lit);
+  --color-ring: var(--color-azure-lit);
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --radius-lg: 6px;
+  --radius-xl: 10px;
+  --radius-2xl: 16px;
+  --radius-3xl: 24px;
 }
 
 @layer base {
-  * {
-    @apply border-border outline-ring/50;
+  :root {
+    color-scheme: dark;
+    /* Optical alignment for the fixed nav when jumping to #anchors */
+    scroll-padding-top: 5.5rem;
   }
+
+  * {
+    border-color: var(--color-rule);
+  }
+
+  html {
+    background: var(--color-void);
+    -webkit-tap-highlight-color: transparent;
+  }
+
   body {
-    @apply bg-background text-foreground;
+    background: var(--color-void);
+    color: var(--color-star-dim);
+    font-family: var(--font-sans);
+    font-synthesis-weight: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: clip;
+  }
+
+  /* ── Browser surfaces. The parts we didn't draw still carry the design. ── */
+
+  ::selection {
+    background: color-mix(in oklab, var(--color-azure) 55%, transparent);
+    color: #ffffff;
+  }
+
+  ::placeholder {
+    color: var(--color-star-ghost);
+  }
+
+  :root {
+    caret-color: var(--color-azure-lit);
+    accent-color: var(--color-azure);
+    scrollbar-color: var(--color-star-ghost) var(--color-void);
+    scrollbar-width: thin;
+  }
+
+  ::-webkit-scrollbar { width: 11px; height: 11px; }
+  ::-webkit-scrollbar-track { background: var(--color-void); }
+  ::-webkit-scrollbar-thumb {
+    background: color-mix(in oklab, var(--color-star-ghost) 70%, transparent);
+    border: 3px solid var(--color-void);
+    border-radius: 99px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: color-mix(in oklab, var(--color-azure-lit) 70%, transparent);
+  }
+  ::-webkit-scrollbar-corner { background: var(--color-void); }
+
+  /* One focus ring for the whole site: a lit hairline, offset off the void. */
+  :focus-visible {
+    outline: 2px solid var(--color-azure-lit);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+  :focus:not(:focus-visible) { outline: none; }
+
+  a { text-underline-offset: 0.22em; text-decoration-thickness: 1px; }
+
+  /* Dates, counts, coordinates and magnitudes line up in columns. */
+  time, [data-numeric] { font-variant-numeric: tabular-nums; }
+
+  h1, h2, h3, h4 {
+    color: var(--color-starlight);
+    text-wrap: balance;
+    font-weight: 500;
+  }
+
+  p { text-wrap: pretty; }
+
+  img { max-width: 100%; }
+
+  /* Firefox honours this on <details>, Safari needs the ::-webkit- twin */
+  summary { cursor: pointer; }
+  summary::-webkit-details-marker { display: none; }
+}
+
+@layer components {
+  /* ── The chart annotation. Every small tracked label on the site.
+        Mono is used here for what mono is for: coordinates and counts. ───── */
+  .label-chart {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    line-height: 1;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--color-star-faint);
+    font-weight: 500;
+  }
+
+  /* ── The quiet sentence. Empty states, hints and error detail — prose,
+        so it is set as prose rather than as a tracked mono label. ───────── */
+  .note {
+    font-size: 0.875rem;
+    line-height: 1.6;
+    color: var(--color-star-faint);
+  }
+
+  /* ── Display voice: Archivo pushed wide. The plaque, the patch, the
+        engraved instrument panel. Tracking tightens as size grows. ───────── */
+  .display {
+    font-family: var(--font-display);
+    font-variation-settings: "wdth" 112;
+    font-weight: 600;
+    letter-spacing: -0.035em;
+    line-height: 0.94;
+    color: var(--color-starlight);
+  }
+
+  .display-xl {
+    font-variation-settings: "wdth" 118;
+    letter-spacing: -0.045em;
+    line-height: 0.88;
+  }
+
+  /* ── The hairline. Replaces every card border on the site. ─────────────── */
+  .rule-h {
+    height: 1px;
+    background: linear-gradient(
+      to right,
+      transparent,
+      var(--color-rule-lit) 12%,
+      var(--color-rule-lit) 88%,
+      transparent
+    );
+  }
+
+  /* ── Panel: the one container. No nested panels, anywhere. ─────────────── */
+  .panel {
+    background:
+      linear-gradient(to bottom, oklch(1 0 0 / 3.5%), oklch(1 0 0 / 1%));
+    border: 1px solid var(--color-rule);
+    border-radius: 4px;
+    backdrop-filter: blur(14px) saturate(1.3);
+  }
+
+  .panel-lift {
+    transition:
+      border-color 0.5s var(--ease-out-expo),
+      background-color 0.5s var(--ease-out-expo),
+      transform 0.5s var(--ease-out-expo),
+      box-shadow 0.5s var(--ease-out-expo);
+  }
+  .panel-lift:hover {
+    border-color: color-mix(in oklab, var(--color-azure-lit) 45%, transparent);
+    transform: translateY(-3px);
+    box-shadow:
+      0 1px 0 0 oklch(1 0 0 / 6%) inset,
+      0 18px 44px -18px oklch(0 0 0 / 80%),
+      0 0 60px -30px var(--color-azure-lit);
+  }
+}
+
+/* One slow sweep across a loading placeholder — a long exposure, not a pulse. */
+@keyframes shimmer {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+@layer utilities {
+  /* Masks a section's top or bottom edge into the void so the continuous
+     sky never shows a seam between sections. */
+  .fade-edge-y {
+    mask-image: linear-gradient(
+      to bottom, transparent, #000 6rem, #000 calc(100% - 6rem), transparent
+    );
+  }
+
+  .text-shadow-void {
+    text-shadow: 0 2px 30px oklch(0 0 0 / 90%), 0 1px 3px oklch(0 0 0 / 60%);
+  }
+}
+
+/* ── Respect the setting. Nothing here is load-bearing for comprehension. ── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

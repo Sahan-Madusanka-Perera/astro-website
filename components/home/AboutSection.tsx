@@ -1,90 +1,131 @@
 'use client';
 
-import { motion } from 'framer-motion';
-import { Telescope, Users, Award, Rocket } from 'lucide-react';
+import { ArrowUpRight } from 'lucide-react';
+import { Section, Shell, SectionHead } from '@/components/layout/Section';
+import { Reveal } from '@/components/motion/Reveal';
 
-const features = [
+/* ---------------------------------------------------------------------------
+   What the club actually does.
+
+   Set as a programme — hairline-ruled rows with a cadence column — rather than
+   four identical icon cards. The rows carry different weights of text, so the
+   block reads as a schedule instead of a grid.
+--------------------------------------------------------------------------- */
+
+const PROGRAMME = [
   {
-    icon: Telescope,
-    title: 'Star Observations',
-    description: 'Regular stargazing sessions with telescopes and expert guidance',
+    title: 'Observation nights',
+    body: 'Telescopes out on the roof, and out at dark-sky sites when the moon gets out of the way. Beginners get put on the eyepiece first.',
+    cadence: 'Monthly',
   },
   {
-    icon: Users,
-    title: 'Workshops & Seminars',
-    description: 'Learn from experts about astronomy, astrophotography, and more',
+    title: 'Workshops & seminars',
+    body: 'Astrophotography, orbital mechanics, stellar spectra, and how to actually collimate a Dobsonian without ruining your night.',
+    cadence: 'Each term',
   },
   {
-    icon: Award,
-    title: 'Competitions & Events',
-    description: 'Participate in astronomy competitions and community events',
+    title: 'Research',
+    body: 'Member-led projects with real write-ups. Variable star photometry, occultation timing, and whatever a member turns up curious about.',
+    cadence: 'Ongoing',
   },
   {
-    icon: Rocket,
-    title: 'Field Trips',
-    description: 'Visit observatories and dark sky locations for better observations',
+    title: 'Field trips',
+    body: 'Out past the streetlights, and out to the observatories. The nights that turn a member into an astronomer.',
+    cadence: 'Twice yearly',
   },
 ];
 
+const JOIN_FORM =
+  'https://docs.google.com/forms/d/e/1FAIpQLSeFJ5bgWOGQ88zKIxZ5psOf-yfJ8DAab0EJpgjxm4cqzqhjIg/viewform?usp=header';
+
 export function AboutSection() {
   return (
-    <section id="about" className="py-20 bg-gray-50">
-      <div className="container mx-auto px-4">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-16"
-        >
-          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-            About Our Club
-          </h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            We are a passionate community of astronomy enthusiasts at the
-            University of Sri Jayewardenepura, dedicated to exploring the
-            wonders of the universe.
-          </p>
-        </motion.div>
+    <Section id="about" className="bg-void pt-8 pb-0">
+      <Shell>
+        <SectionHead
+          title={<>What we do<br />when it&apos;s dark.</>}
+          lede="We're the astronomy club of the University of Sri Jayewardenepura — students, mostly, plus anyone who turns up and stays. No experience is assumed and none is required."
+        />
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {features.map((feature, index) => (
-            <motion.div
-              key={feature.title}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: index * 0.1 }}
-              className="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow"
+        <ul className="mt-16 md:mt-20">
+          {PROGRAMME.map((item, i) => (
+            <Reveal
+              as="li"
+              key={item.title}
+              delay={i * 70}
+              className="group grid grid-cols-1 gap-x-10 gap-y-3 border-t border-rule py-8 transition-colors duration-500 hover:border-azure-lit/35 md:grid-cols-12 md:py-10 last:border-b"
             >
-              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
-                <feature.icon className="w-6 h-6 text-purple-600" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">
-                {feature.title}
+              <h3 className="col-span-1 text-[1.375rem] font-medium leading-tight tracking-[-0.015em] text-starlight transition-colors duration-500 group-hover:text-azure-glow md:col-span-4 md:text-[1.5rem]">
+                {item.title}
               </h3>
-              <p className="text-gray-600">{feature.description}</p>
-            </motion.div>
+              <p className="col-span-1 max-w-[62ch] leading-[1.7] text-star-dim md:col-span-6">
+                {item.body}
+              </p>
+              <p className="label-chart col-span-1 md:col-span-2 md:text-right">
+                {item.cadence}
+              </p>
+            </Reveal>
           ))}
-        </div>
+        </ul>
+      </Shell>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-          className="mt-16 bg-gradient-to-r from-purple-600 to-blue-600 rounded-2xl p-8 md:p-12 text-white text-center"
-        >
-          <h3 className="text-3xl font-bold mb-4">Join Our Community</h3>
-          <p className="text-lg mb-6 text-white/90">
-            Whether you're a beginner or an experienced astronomer, everyone is
-            welcome to join our club and explore the universe together.
-          </p>
-          <button className="px-8 py-3 bg-white text-purple-600 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
-            Become a Member
-          </button>
-        </motion.div>
+      {/* ── The join field ───────────────────────────────────────────────
+          The one region on the site where azure owns the whole surface. The
+          page has been dark for three screens; this is what it was saving. */}
+      <div
+        className="relative mt-24 overflow-hidden md:mt-32"
+        style={{
+          background:
+            'linear-gradient(155deg, #00405f 0%, #00699b 32%, #0d8fcf 68%, #2fabe4 100%)',
+        }}
+      >
+        {/* the seal's own ring geometry, at wall scale */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -right-[16%] -top-[62%] aspect-square w-[62rem] rounded-full border border-white/[0.14]"
+        />
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -right-[10%] -top-[48%] aspect-square w-[46rem] rounded-full border border-white/[0.09]"
+        />
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0"
+          style={{
+            background:
+              'radial-gradient(115% 85% at 10% 112%, rgba(0,24,42,0.42), transparent 60%)',
+          }}
+        />
+
+        <Shell className="relative py-20 md:py-28">
+          <div className="grid grid-cols-1 items-end gap-x-10 gap-y-10 md:grid-cols-12">
+            <div className="col-span-1 md:col-span-7">
+              <h3 className="display display-xl text-[clamp(2rem,5.6vw,3.75rem)] text-white">
+                Anyone who looks up
+                <br />
+                is already halfway in.
+              </h3>
+              <p className="mt-6 max-w-[48ch] text-[1.0625rem] leading-[1.65] text-white/85">
+                Membership is open to every faculty, every year, and every level
+                of knowing what you&apos;re looking at. Bring nothing. We have
+                the telescopes.
+              </p>
+            </div>
+
+            <div className="col-span-1 flex md:col-span-4 md:col-start-9 md:justify-end">
+              <a
+                href={JOIN_FORM}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group inline-flex items-center gap-2.5 rounded-full bg-white px-8 py-4 text-[0.9375rem] font-medium text-[#00354f] transition-[transform,box-shadow] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:shadow-[0_14px_44px_-10px_rgba(0,0,0,0.5)]"
+              >
+                Become a member
+                <ArrowUpRight className="h-4 w-4 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+              </a>
+            </div>
+          </div>
+        </Shell>
       </div>
-    </section>
+    </Section>
   );
 }

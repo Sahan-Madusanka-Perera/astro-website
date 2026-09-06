@@ -1,256 +1,179 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import Image from 'next/image';
+import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
+import { StarField } from '@/components/cosmos/StarField';
+import { ISSMarker } from '@/components/cosmos/ISSMarker';
+import { Shell } from '@/components/layout/Section';
+import { HorizonReadout } from './HorizonReadout';
+
+/* ---------------------------------------------------------------------------
+   The first viewport.
+
+   A view from low orbit: Earth's limb as a single hairline arc with its
+   atmosphere glowing along it, the club's seal at a size where its own drawing
+   reads, and the campus coordinates set on the horizon in mono — the way a
+   plate is annotated.
+
+   Two figures share it, both earning their place rather than decorating:
+
+   · The astronaut drifts at the left, graded down into the night — dimmed,
+     desaturated and cooled so the light on him matches the light in the field
+     behind him. Atmospheric perspective does the work a cutout can't: dimmer
+     reads as further away, so he sits in the sky rather than on top of it.
+   · The station at the right is the real ISS. Its readout is live and its
+     drift follows the station's true longitude, which is what separates an
+     instrument from an ornament.
+
+   Everything else is entrance motion only — one settle on load, then stillness.
+--------------------------------------------------------------------------- */
+
+const EASE = [0.16, 1, 0.3, 1] as const;
 
 export function Hero() {
-  return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-visible bg-[#0a0e27]">
-      {/* Animated Background Stars */}
-      <div className="absolute inset-0">
-        {[...Array(100)].map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute bg-white rounded-full"
-            style={{
-              width: Math.random() * 3 + 'px',
-              height: Math.random() * 3 + 'px',
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-            }}
-            animate={{
-              opacity: [0.1, 1, 0.1],
-              scale: [1, 1.2, 1],
-            }}
-            transition={{
-              duration: 3 + Math.random() * 3,
-              repeat: Infinity,
-              delay: Math.random() * 2,
-            }}
-          />
-        ))}
-      </div>
+  const reduced = useReducedMotion();
 
-      {/* Main Content Container */}
-      <div className="container mx-auto px-4 relative z-10 flex flex-col items-center justify-center min-h-screen pt-20">
-        {/* Astronaut floating in center */}
+  const rise = (delay: number) => ({
+    initial: { opacity: 0, y: reduced ? 0 : 22 },
+    animate: { opacity: 1, y: 0 },
+    transition: { duration: 1.1, delay, ease: EASE },
+  });
+
+  return (
+    <section className="relative isolate flex min-h-[100svh] flex-col overflow-hidden bg-void">
+      <StarField density={210} constellation meteorRate={6} />
+
+      {/* ── Earth's limb ──────────────────────────────────────────────────
+          One hairline arc, an atmosphere gradient along it, and the planet's
+          shadowed body below. The whole horizon costs a single element. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute left-1/2 -z-10 -translate-x-1/2"
+        style={{
+          top: '82svh',
+          width: '215vw',
+          height: '215vw',
+          borderRadius: '50%',
+          background:
+            'radial-gradient(circle at 50% 0%, rgba(41,163,221,0.16) 0%, rgba(0,72,112,0.10) 18%, rgba(4,6,15,0.92) 42%, #04060f 60%)',
+          boxShadow:
+            '0 -1px 0 0 rgba(111,208,247,0.32), 0 -14px 60px -10px rgba(41,163,221,0.32), 0 -60px 180px -30px rgba(0,128,192,0.22)',
+        }}
+      />
+
+      <Shell className="relative z-10 flex flex-1 flex-col items-center justify-center pt-[5.5rem] pb-10 text-center md:pt-24 md:pb-14">
+        {/* The seal, large enough that the telescope, the ringed planet and the
+            crescent inside it actually read. It is the identity; with the props
+            gone it can be the thing you look at. */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.5 }}
-          animate={{ 
-            opacity: 1, 
-            scale: 1,
-            y: [0, -20, 0],
-            x: [0, 10, 0],
-          }}
-          transition={{ 
-            opacity: { duration: 1, delay: 0.3 },
-            scale: { duration: 1, delay: 0.3 },
-            y: { duration: 6, repeat: Infinity, ease: "easeInOut" },
-            x: { duration: 8, repeat: Infinity, ease: "easeInOut" },
-          }}
-          className="relative w-96 h-96 md:w-[36rem] md:h-[36rem] mb-12 z-30"
+          {...rise(0.05)}
+          className="relative mb-6 h-[min(5.5rem,12svh)] w-[min(5.5rem,12svh)] md:mb-8 md:h-[min(9rem,17svh)] md:w-[min(9rem,17svh)]"
         >
           <Image
-            src="/images/astronaut.png"
-            alt="Floating Astronaut"
+            src="/images/astro_logo.png"
+            alt=""
             fill
-            className="object-contain drop-shadow-2xl"
+            sizes="(max-width: 768px) 96px, 144px"
             priority
+            className="object-contain drop-shadow-[0_0_38px_rgba(41,163,221,0.2)]"
           />
         </motion.div>
 
-        {/* Title Behind/Around Astronaut */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, delay: 0.5 }}
-          className="text-center mb-8 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none"
-        >
-          <h1 className="text-7xl md:text-8xl lg:text-[10rem] font-black text-white/10 tracking-tighter leading-none">
-            J'PURA
-          </h1>
-          <h1 className="text-7xl md:text-8xl lg:text-[10rem] font-black text-white/10 tracking-tighter leading-none -mt-4">
-            ASTRO
-          </h1>
-        </motion.div>
+        <motion.h1 {...rise(0.14)} className="display display-xl">
+          <span className="block text-[min(11.5vw,8.5rem,16svh)]">
+            J&apos;PURA
+          </span>
+          <span className="mt-1 block text-[min(3.55vw,2.4rem,5svh)] font-normal tracking-[0.34em] text-azure-glow md:mt-2.5 md:tracking-[0.42em]">
+            ASTRONOMY&nbsp;CLUB
+          </span>
+        </motion.h1>
 
-        {/* Subtitle */}
         <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.7 }}
-          className="text-2xl md:text-3xl text-white/80 font-light text-center mb-8 z-30"
+          {...rise(0.24)}
+          className="mt-6 max-w-[44ch] text-balance text-[1.0625rem] leading-[1.6] text-star-dim md:mt-7 md:text-[1.1875rem]"
         >
-          Explore the infinite.
+          We keep the telescopes, teach the sky, and drive out past the
+          streetlights to find it properly dark.
         </motion.p>
 
-        {/* Earth with Orbits at bottom */}
-        <div className="absolute bottom-[-320px] left-1/2 -translate-x-1/2 w-[600px] h-[600px] md:w-[800px] md:h-[800px]">
-          {/* Orbit Rings */}
-          <motion.div
-            className="absolute inset-0 rounded-full border border-blue-500/20"
-            animate={{ rotate: 360 }}
-            transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-          />
-          <motion.div
-            className="absolute inset-[10%] rounded-full border border-purple-500/20"
-            animate={{ rotate: -360 }}
-            transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
-          />
-          <motion.div
-            className="absolute inset-[20%] rounded-full border border-cyan-500/20"
-            animate={{ rotate: 360 }}
-            transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
-          />
-
-          {/* Earth */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ 
-              opacity: 1, 
-              scale: 1,
-              rotate: [0, 360],
-            }}
-            transition={{ 
-              opacity: { duration: 1, delay: 0.5 },
-              scale: { duration: 1, delay: 0.5 },
-              rotate: { duration: 120, repeat: Infinity, ease: "linear" }
-            }}
-            className="absolute inset-[15%] rounded-full overflow-hidden shadow-2xl"
-            style={{
-              background: `radial-gradient(circle at 30% 30%, rgba(100, 150, 255, 0.4), transparent),
-                          url('https://images.unsplash.com/photo-1614730321146-b6fa6a46bcb4?q=80&w=1200')`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-              boxShadow: '0 0 100px rgba(59, 130, 246, 0.5), inset 0 0 100px rgba(0, 0, 0, 0.5)',
-            }}
-          >
-            {/* Earth glow effect */}
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-400/20 via-transparent to-transparent" />
-          </motion.div>
-
-          {/* Orbit particles */}
-          {[...Array(3)].map((_, i) => (
-            <motion.div
-              key={i}
-              className="absolute w-2 h-2 bg-white rounded-full"
-              style={{
-                left: '50%',
-                top: `${i * 10 + 10}%`,
-              }}
-              animate={{
-                rotate: 360,
-                x: [0, 100, 0, -100, 0],
-                y: [0, 50, 100, 50, 0],
-              }}
-              transition={{
-                duration: 15 + i * 5,
-                repeat: Infinity,
-                ease: "linear",
-              }}
-            />
-          ))}
-
-          {/* Satellite Orbital Path - Dotted Circle */}
-          <svg 
-            className="absolute inset-0 w-full h-full pointer-events-none"
-            style={{ transform: 'scale(0.75)' }}
-          >
-            <motion.circle
-              cx="50%"
-              cy="50%"
-              r="45%"
-              fill="none"
-              stroke="rgba(139, 92, 246, 0.4)"
-              strokeWidth="2"
-              strokeDasharray="8 12"
-              initial={{ pathLength: 0, opacity: 0 }}
-              animate={{ 
-                pathLength: 1, 
-                opacity: [0.3, 0.6, 0.3],
-                rotate: [0, 360]
-              }}
-              transition={{ 
-                pathLength: { duration: 2, delay: 1 },
-                opacity: { duration: 3, repeat: Infinity, ease: "easeInOut" },
-                rotate: { duration: 90, repeat: Infinity, ease: "linear" }
-              }}
-              style={{ transformOrigin: '50% 50%' }}
-            />
-          </svg>
-
-          {/* Orbiting Satellite */}
-          <motion.div
-            className="absolute w-16 h-16 md:w-20 md:h-20"
-            style={{
-              left: '50%',
-              top: '50%',
-              x: '-50%',
-              y: '-50%',
-            }}
-            animate={{
-              rotate: [0, 360],
-            }}
-            transition={{
-              duration: 50,
-              repeat: Infinity,
-              ease: "linear",
-            }}
-          >
-            <motion.div
-              className="absolute"
-              style={{
-                left: '50%',
-                top: '-240px',
-                x: '-50%',
-              }}
-              animate={{
-                rotate: [0, -360],
-                scale: [1, 1.1, 1],
-              }}
-              transition={{
-                rotate: { duration: 50, repeat: Infinity, ease: "linear" },
-                scale: { duration: 4, repeat: Infinity, ease: "easeInOut" },
-              }}
-            >
-              <div className="relative w-16 h-16 md:w-20 md:h-20">
-                <Image
-                  src="/images/satellite.png"
-                  alt="Orbiting Satellite"
-                  fill
-                  className="object-contain drop-shadow-[0_0_20px_rgba(139,92,246,0.6)]"
-                />
-                {/* Satellite glow pulse */}
-                <motion.div
-                  className="absolute inset-0 rounded-full bg-purple-500/30 blur-xl"
-                  animate={{
-                    scale: [1, 1.5, 1],
-                    opacity: [0.3, 0.6, 0.3],
-                  }}
-                  transition={{
-                    duration: 2,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                  }}
-                />
-              </div>
-            </motion.div>
-          </motion.div>
-        </div>
-
-        {/* See Events Button */}
-        <motion.a
-          href="#events"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.8 }}
-          className="relative z-40 mt-8 px-8 py-4 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-full font-semibold text-white transition-all duration-300 border border-white/20 flex items-center gap-2 group"
+        <motion.div
+          {...rise(0.34)}
+          className="mt-8 flex flex-col items-center gap-4 sm:flex-row sm:gap-5"
         >
-          See events
-          <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-        </motion.a>
-      </div>
+          <Link
+            href="#events"
+            className="group inline-flex items-center gap-2.5 rounded-full bg-azure px-7 py-3.5 text-[0.9375rem] font-medium text-white transition-[background-color,box-shadow,transform] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:bg-azure-lit hover:shadow-[0_10px_40px_-8px_rgba(41,163,221,0.65)]"
+          >
+            What&apos;s on
+            <ArrowRight className="h-4 w-4 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-1" />
+          </Link>
+
+          <Link
+            href="#about"
+            className="inline-flex items-center gap-2.5 rounded-full border border-rule-lit px-7 py-3.5 text-[0.9375rem] font-medium text-star-dim transition-colors duration-500 hover:border-azure-lit/60 hover:text-starlight"
+          >
+            About the club
+          </Link>
+        </motion.div>
+      </Shell>
+
+      {/* ── The astronaut, drifting at the left ───────────────────────────
+          Graded into the palette rather than dropped on top of it: the filter
+          cools and dims him to the value of a distant, sunlit-from-behind
+          figure. Remove the filter and he reads as a sticker again.
+          On a phone he moves to the clear band above the seal — the middle of
+          that layout is fully occupied and he lands on the wordmark there. */}
+      <motion.div
+        aria-hidden
+        initial={{ opacity: 0, scale: 0.92 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 1.6, delay: 0.45, ease: EASE }}
+        className="pointer-events-none absolute left-[-1.5rem] top-[8svh] z-0 h-28 w-28 sm:left-[-1rem] sm:top-[14svh] sm:h-44 sm:w-44 md:left-[2vw] md:top-[26svh] md:h-64 md:w-64 lg:left-[5vw] lg:h-72 lg:w-72"
+      >
+        <motion.div
+          animate={
+            reduced
+              ? undefined
+              : { y: [0, -18, 0], x: [0, 7, 0], rotate: [-2, 2.5, -2] }
+          }
+          transition={{
+            y: { duration: 14, repeat: Infinity, ease: 'easeInOut' },
+            x: { duration: 19, repeat: Infinity, ease: 'easeInOut' },
+            rotate: { duration: 23, repeat: Infinity, ease: 'easeInOut' },
+          }}
+          className="relative h-full w-full"
+        >
+          <Image
+            src="/images/astronaut.webp"
+            alt=""
+            fill
+            sizes="(max-width: 640px) 112px, (max-width: 1024px) 256px, 288px"
+            priority
+            className="object-contain"
+            style={{
+              filter:
+                'brightness(0.86) saturate(0.72) contrast(1.04) sepia(0.14) hue-rotate(172deg) drop-shadow(0 18px 44px rgba(0,0,0,0.7))',
+            }}
+          />
+        </motion.div>
+      </motion.div>
+
+      {/* ── The station, where it actually is ─────────────────────────────── */}
+      <ISSMarker />
+
+      {/* ── The horizon annotation ────────────────────────────────────────── */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 1.2, delay: 0.8 }}
+        className="relative z-10 pb-7 md:pb-8"
+      >
+        <Shell>
+          <HorizonReadout />
+        </Shell>
+      </motion.div>
     </section>
   );
 }

@@ -7,7 +7,6 @@ export const PLANETS: Planet[] = [
     slug: 'education',
     description: 'Fostering knowledge and learning through workshops, seminars, and educational programs.',
     icon: '/images/planet_of_education.png',
-    color: '#7DD3FC', // Unified accent
     director: {
       id: 'd1',
       name: 'Chamudi Kaushika',
@@ -52,7 +51,6 @@ export const PLANETS: Planet[] = [
     slug: 'research',
     description: 'Advancing astronomical research and fostering scientific curiosity among members.',
     icon: '/images/planet_of_research.png',
-    color: '#7DD3FC', // Unified accent
     director: {
       id: 'd2',
       name: 'Raneesha Jayasena',
@@ -97,10 +95,9 @@ export const PLANETS: Planet[] = [
     slug: 'media-marketing',
     description: 'Managing club communications, social media presence, and promotional activities.',
     icon: '/images/planet_of_media.png',
-    color: '#7DD3FC', // Unified accent
     director: {
       id: 'd3',
-      name: 'Director Name',
+      name: 'Sahan Perera',
       role: 'director',
       image: '/images/team/media-director.jpg',
       email: 'media.director@usjastro.lk',
@@ -109,14 +106,14 @@ export const PLANETS: Planet[] = [
     managers: [
       {
         id: 'm7',
-        name: 'Manager 1',
+        name: 'Nethmi Bhayogya',
         role: 'manager',
         image: '/images/team/media-manager-1.jpg',
         email: 'manager1.media@usjastro.lk',
       },
       {
         id: 'm8',
-        name: 'Manager 2',
+        name: 'Chalusha ',
         role: 'manager',
         image: '/images/team/media-manager-2.jpg',
         email: 'manager2.media@usjastro.lk',
@@ -149,7 +146,6 @@ export const PLANETS: Planet[] = [
     slug: 'management-finance',
     description: 'Overseeing financial operations, budgeting, and administrative management.',
     icon: '/images/planet_of_management.png',
-    color: '#7DD3FC', // Unified accent
     director: {
       id: 'd4',
       name: 'Director Name',
@@ -194,7 +190,6 @@ export const PLANETS: Planet[] = [
     slug: 'observation',
     description: 'Organizing stargazing sessions, telescope operations, and observational activities.',
     icon: '/images/planet_of_observation.png',
-    color: '#7DD3FC', // Unified accent
     director: {
       id: 'd5',
       name: 'Director Name',
@@ -239,7 +234,6 @@ export const PLANETS: Planet[] = [
     slug: 'organizing',
     description: 'Planning and executing club events, trips, and various activities.',
     icon: '/images/planet_of_organizing.png',
-    color: '#7DD3FC', // Unified accent
     director: {
       id: 'd6',
       name: 'Director Name',

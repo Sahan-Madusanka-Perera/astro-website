@@ -1,12 +1,26 @@
 'use client';
 
 import { use } from 'react';
-import { motion } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowLeft, Mail } from 'lucide-react';
-import { PLANETS } from '@/lib/planets-data';
 import { notFound } from 'next/navigation';
+import { PLANETS } from '@/lib/planets-data';
+import { StarField } from '@/components/cosmos/StarField';
+import { Navbar } from '@/components/layout/Navbar';
+import { Footer } from '@/components/layout/Footer';
+import { Shell } from '@/components/layout/Section';
+import { Reveal } from '@/components/motion/Reveal';
+import { Avatar } from '@/components/people/Avatar';
+
+/* ---------------------------------------------------------------------------
+   One division.
+
+   The old page tinted every element with a per-planet accent — but all six
+   planets carry the same colour in the data, so the tinting bought nothing and
+   cost the page its consistency. Here the site's own azure does the work and
+   the planet's own artwork carries its identity.
+--------------------------------------------------------------------------- */
 
 export default function PlanetPage({
   params,
@@ -15,329 +29,182 @@ export default function PlanetPage({
 }) {
   const { slug } = use(params);
   const planet = PLANETS.find((p) => p.slug === slug);
+  if (!planet) notFound();
 
-  if (!planet) {
-    notFound();
-  }
+  const short = planet.name.replace('Planet of ', '');
+  const people = planet.managers.length + 1;
 
   return (
-    <main className="min-h-screen bg-[#0a0e27] relative overflow-hidden">
-      {/* Enhanced Cosmic Background */}
-      <div className="absolute inset-0">
-        {/* Layered gradients */}
-        <div className="absolute inset-0 bg-linear-to-br from-purple-900/20 via-transparent to-blue-900/20" />
-        <div className="absolute inset-0 bg-linear-to-tl from-pink-900/10 via-transparent to-cyan-900/10" />
-        
-        {/* Large nebula glow matching planet color */}
-        <motion.div
-          className="absolute top-0 left-1/2 -translate-x-1/2 w-200 h-200 rounded-full blur-3xl opacity-20"
-          style={{ backgroundColor: planet.color }}
-          animate={{
-            scale: [1, 1.2, 1],
-            opacity: [0.15, 0.25, 0.15],
-          }}
-          transition={{
-            duration: 8,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-        />
-        
-        {/* Animated gradient orbs */}
-        <motion.div
-          className="absolute top-1/4 right-1/4 w-96 h-96 bg-purple-600/10 rounded-full blur-3xl"
-          animate={{
-            x: [0, 100, 0],
-            y: [0, 50, 0],
-            scale: [1, 1.3, 1],
-          }}
-          transition={{
-            duration: 15,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-        />
-        <motion.div
-          className="absolute bottom-1/4 left-1/4 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl"
-          animate={{
-            x: [0, -100, 0],
-            y: [0, -50, 0],
-            scale: [1.3, 1, 1.3],
-          }}
-          transition={{
-            duration: 20,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-        />
-      </div>
+    <>
+      <Navbar />
+      <main id="main" className="relative isolate min-h-screen overflow-hidden bg-void">
+        <StarField density={120} meteorRate={3} />
 
-      {/* Background Stars */}
-      <div className="absolute inset-0">
-        {[...Array(100)].map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute bg-white rounded-full"
-            style={{
-              width: Math.random() * 2 + 1 + 'px',
-              height: Math.random() * 2 + 1 + 'px',
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-            }}
-            animate={{
-              opacity: [0.2, 1, 0.2],
-              scale: [1, 1.5, 1],
-            }}
-            transition={{
-              duration: 2 + Math.random() * 3,
-              repeat: Infinity,
-            }}
-          />
-        ))}
-      </div>
+        {/* the planet's own light, spilling over the top of the page */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute left-1/2 top-[-32rem] -z-10 h-[52rem] w-[52rem] -translate-x-1/2 rounded-full opacity-[0.18] blur-[120px]"
+          style={{ background: 'radial-gradient(circle, #29a3dd, transparent 70%)' }}
+        />
 
-      <div className="container mx-auto px-4 py-12 relative z-10">
-        {/* Back Button */}
-        <Link
-          href="/#planets"
-          className="inline-flex items-center gap-2 text-gray-300 hover:text-white transition-colors mb-8"
-        >
-          <ArrowLeft className="w-5 h-5" />
-          Back to Home
-        </Link>
-
-        {/* Planet Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-16"
-        >
-          <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.8 }}
-            className="relative w-48 h-48 mx-auto mb-8 rounded-full overflow-hidden"
-            style={{
-              boxShadow: `0 0 80px ${planet.color}60`,
-            }}
+        <Shell className="relative z-10 pt-28 pb-24 md:pt-36 md:pb-32">
+          <Link
+            href="/#planets"
+            className="group inline-flex items-center gap-2 text-[0.875rem] text-star-faint transition-colors hover:text-azure-glow"
           >
-            <Image
-              src={planet.icon}
-              alt={planet.name}
-              fill
-              className="object-cover"
-              priority
-            />
-          </motion.div>
+            <ArrowLeft className="h-4 w-4 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:-translate-x-1" />
+            All planets
+          </Link>
 
-          <h1
-            className="text-5xl md:text-6xl font-bold mb-4"
-            style={{
-              background: `linear-gradient(135deg, ${planet.color}, ${planet.color}80)`,
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-            }}
-          >
-            {planet.name}
-          </h1>
-          <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-            {planet.description}
-          </p>
-        </motion.div>
-
-        {/* Director Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className="mb-16"
-        >
-          <h2 className="text-3xl font-bold text-white text-center mb-8">
-            Director
-          </h2>
-          <div className="max-w-3xl mx-auto bg-linear-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-3xl p-8 md:p-10 border border-white/20 shadow-2xl relative overflow-hidden">
-            {/* Card glow effect */}
-            <div 
-              className="absolute inset-0 opacity-20 rounded-3xl blur-2xl"
-              style={{ backgroundColor: planet.color }}
-            />
-            
-            <div className="relative flex flex-col md:flex-row items-center gap-8">
-              <motion.div 
-                className="relative w-56 h-56 rounded-full overflow-hidden shrink-0 ring-4 shadow-2xl"
-                style={{ 
-                  '--tw-ring-color': planet.color + '60',
-                  boxShadow: `0 20px 60px ${planet.color}40`
-                } as React.CSSProperties}
-                whileHover={{ scale: 1.05 }}
-                transition={{ type: "spring", stiffness: 300 }}
-              >
+          {/* ── Masthead ────────────────────────────────────────────────── */}
+          <header className="mt-14 grid grid-cols-1 items-center gap-x-14 gap-y-10 md:mt-20 md:grid-cols-12">
+            <div className="col-span-1 justify-self-center md:col-span-4 md:justify-self-start">
+              <span className="relative block aspect-square w-44 overflow-hidden rounded-full ring-1 ring-white/10 shadow-[0_0_90px_-20px_rgba(41,163,221,0.8)] md:w-full md:max-w-[17rem]">
                 <Image
-                  src={planet.director.image}
-                  alt={planet.director.name}
+                  src={planet.icon}
+                  alt=""
                   fill
+                  sizes="(max-width: 768px) 176px, 272px"
+                  priority
                   className="object-cover"
                 />
-              </motion.div>
-              <div className="text-center md:text-left flex-1">
-                <h3 className="text-3xl font-bold text-white mb-2">
-                  {planet.director.name}
-                </h3>
-                <p 
-                  className="text-xl font-semibold mb-4"
-                  style={{ color: planet.color }}
-                >
-                  Director
-                </p>
-                {planet.director.bio && (
-                  <p className="text-gray-300 mb-6 text-lg leading-relaxed">{planet.director.bio}</p>
-                )}
-                {planet.director.email && (
-                  <motion.a
-                    href={`mailto:${planet.director.email}`}
-                    className="inline-flex items-center gap-2 px-6 py-3 rounded-full font-medium transition-all duration-300 shadow-lg"
-                    style={{ 
-                      backgroundColor: planet.color + '20',
-                      color: planet.color,
-                      border: `2px solid ${planet.color}40`
-                    }}
-                    whileHover={{ 
-                      scale: 1.05,
-                      boxShadow: `0 10px 30px ${planet.color}40`
-                    }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    <Mail className="w-5 h-5" />
-                    Send Email
-                  </motion.a>
-                )}
-              </div>
+              </span>
             </div>
-          </div>
-        </motion.div>
 
-        {/* Managers Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-          className="mb-16"
-        >
-          <h2 className="text-3xl font-bold text-white text-center mb-8">
-            Managers
-          </h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
-            {planet.managers.map((manager, index) => (
-              <motion.div
-                key={manager.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.5 + index * 0.1 }}
-                className="bg-linear-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-2xl p-6 border border-white/20 hover:border-white/40 transition-all duration-300 shadow-xl group relative overflow-hidden"
-                whileHover={{ y: -5 }}
-              >
-                {/* Card hover glow */}
-                <div 
-                  className="absolute inset-0 opacity-0 group-hover:opacity-30 transition-opacity duration-300 blur-xl"
-                  style={{ backgroundColor: planet.color }}
+            <div className="col-span-1 text-center md:col-span-8 md:text-left">
+              <h1 className="display display-xl text-[clamp(2.5rem,7.5vw,5rem)]">
+                {short}
+              </h1>
+              <p className="label-chart mt-5">
+                Planet {planet.id} of {PLANETS.length}
+                <span className="mx-2 text-star-ghost">/</span>
+                {people} {people === 1 ? 'person' : 'people'}
+              </p>
+              <p className="mx-auto mt-7 max-w-[54ch] text-[1.0625rem] leading-[1.7] text-star-dim md:mx-0 md:text-[1.1875rem]">
+                {planet.description}
+              </p>
+            </div>
+          </header>
+
+          {/* ── The people ──────────────────────────────────────────────── */}
+          <section className="mt-24 md:mt-32">
+            <div className="rule-h" />
+            <h2 className="display mt-8 text-[clamp(1.6rem,3.6vw,2.25rem)]">
+              Who runs it
+            </h2>
+
+            {/* Director — given the room the role deserves. */}
+            <Reveal className="mt-10">
+              <div className="panel flex flex-col items-center gap-8 p-7 text-center sm:flex-row sm:items-start sm:gap-10 sm:p-9 sm:text-left">
+                <Avatar
+                  src={planet.director.image}
+                  name={planet.director.name}
+                  sizes="176px"
+                  className="h-36 w-36 shrink-0 shadow-[0_18px_50px_-16px_rgba(41,163,221,0.6)] sm:h-44 sm:w-44"
                 />
-                
-                <div className="relative">
-                  <motion.div 
-                    className="relative w-36 h-36 mx-auto mb-4 rounded-full overflow-hidden ring-4 shadow-xl"
-                    style={{ 
-                      '--tw-ring-color': planet.color + '40',
-                      boxShadow: `0 10px 30px ${planet.color}30`
-                    } as React.CSSProperties}
-                    whileHover={{ scale: 1.1 }}
-                    transition={{ type: "spring", stiffness: 300 }}
-                  >
-                    <Image
-                      src={manager.image}
-                      alt={manager.name}
-                      fill
-                      className="object-cover"
-                    />
-                  </motion.div>
-                  <h3 className="text-xl font-bold text-white text-center mb-1">
-                    {manager.name}
+                <div className="min-w-0 flex-1">
+                  <p className="label-chart">Director</p>
+                  <h3 className="display mt-3 text-[clamp(1.4rem,3.2vw,2rem)]">
+                    {planet.director.name}
                   </h3>
-                  <p 
-                    className="text-center mb-4 font-medium"
-                    style={{ color: planet.color }}
-                  >
-                    Manager
-                  </p>
-                  {manager.email && (
-                    <motion.a
-                      href={`mailto:${manager.email}`}
-                      className="flex items-center justify-center gap-2 text-sm px-4 py-2 rounded-full font-medium transition-all duration-300 mx-auto w-fit"
-                      style={{ 
-                        backgroundColor: planet.color + '20',
-                        color: planet.color,
-                        border: `1px solid ${planet.color}40`
-                      }}
-                      whileHover={{ 
-                        scale: 1.05,
-                        boxShadow: `0 5px 20px ${planet.color}30`
-                      }}
-                      whileTap={{ scale: 0.95 }}
+                  {planet.director.bio && (
+                    <p className="mt-4 max-w-[58ch] leading-[1.7] text-star-dim">
+                      {planet.director.bio}
+                    </p>
+                  )}
+                  {planet.director.email && (
+                    <a
+                      href={`mailto:${planet.director.email}`}
+                      className="mt-6 inline-flex items-center gap-2.5 rounded-full border border-rule-lit px-5 py-2.5 text-[0.875rem] text-star-dim transition-colors duration-500 hover:border-azure-lit/60 hover:text-starlight"
                     >
-                      <Mail className="w-4 h-4" />
-                      Contact
-                    </motion.a>
+                      <Mail className="h-4 w-4" strokeWidth={1.6} />
+                      Email {planet.director.name.split(' ')[0]}
+                    </a>
                   )}
                 </div>
-              </motion.div>
-            ))}
-          </div>
-        </motion.div>
+              </div>
+            </Reveal>
 
-        {/* Responsibilities */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.6 }}
-          className="max-w-4xl mx-auto"
-        >
-          <h2 className="text-3xl font-bold text-white text-center mb-8">
-            Responsibilities
-          </h2>
-          <div className="bg-linear-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-3xl p-8 md:p-10 border border-white/20 shadow-2xl relative overflow-hidden">
-            {/* Card glow effect */}
-            <div 
-              className="absolute inset-0 opacity-10 rounded-3xl blur-2xl"
-              style={{ backgroundColor: planet.color }}
-            />
-            
-            <ul className="space-y-5 relative">
-              {planet.responsibilities.map((responsibility, index) => (
-                <motion.li
-                  key={index}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.5, delay: 0.7 + index * 0.1 }}
-                  className="flex items-start gap-4 group"
-                >
-                  <motion.span
-                    className="w-3 h-3 rounded-full mt-2 shrink-0 shadow-lg"
-                    style={{ 
-                      backgroundColor: planet.color,
-                      boxShadow: `0 0 20px ${planet.color}80`
-                    }}
-                    whileHover={{ scale: 1.5 }}
-                    transition={{ type: "spring", stiffness: 400 }}
-                  />
-                  <span className="text-gray-200 text-lg leading-relaxed group-hover:text-white transition-colors">
-                    {responsibility}
-                  </span>
-                </motion.li>
+            {/* Managers */}
+            <ul className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {planet.managers.map((m, i) => (
+                <Reveal as="li" key={m.id} delay={i * 65}>
+                  <div className="panel panel-lift flex h-full items-center gap-5 p-5">
+                    <Avatar
+                      src={m.image}
+                      name={m.name}
+                      sizes="80px"
+                      className="h-[4.5rem] w-[4.5rem] shrink-0"
+                    />
+                    <div className="min-w-0">
+                      <p className="label-chart">Manager</p>
+                      <h3 className="mt-2 text-[1.0625rem] font-medium leading-snug text-starlight">
+                        {m.name}
+                      </h3>
+                      {m.email && (
+                        <a
+                          href={`mailto:${m.email}`}
+                          className="mt-2.5 inline-flex items-center gap-1.5 text-[0.8125rem] text-azure-lit transition-colors hover:text-azure-glow"
+                        >
+                          <Mail className="h-3.5 w-3.5" strokeWidth={1.6} />
+                          Contact
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                </Reveal>
               ))}
             </ul>
-          </div>
-        </motion.div>
-      </div>
-    </main>
+          </section>
+
+          {/* ── Remit ───────────────────────────────────────────────────── */}
+          <section className="mt-24 md:mt-32">
+            <div className="rule-h" />
+            <div className="grid grid-cols-1 gap-x-14 gap-y-8 pt-8 md:grid-cols-12">
+              <h2 className="display col-span-1 text-[clamp(1.6rem,3.6vw,2.25rem)] md:col-span-4">
+                What it&apos;s
+                <br className="hidden md:block" /> responsible for
+              </h2>
+
+              {/* A list, not a sequence — the duties aren't performed in
+                  order, so numbering them would be decoration. */}
+              <ul className="col-span-1 md:col-span-7 md:col-start-6">
+                {planet.responsibilities.map((r, i) => (
+                  <Reveal
+                    as="li"
+                    key={r}
+                    delay={i * 60}
+                    className="border-t border-rule py-5 text-[1.0625rem] leading-[1.65] text-star-dim last:border-b"
+                  >
+                    {r}
+                  </Reveal>
+                ))}
+              </ul>
+            </div>
+          </section>
+
+          {/* ── Onward ──────────────────────────────────────────────────── */}
+          <nav className="mt-24 border-t border-rule pt-8 md:mt-32" aria-label="Other planets">
+            <p className="label-chart">The other five</p>
+            <ul className="mt-5 flex flex-wrap gap-x-2 gap-y-2">
+              {PLANETS.filter((p) => p.slug !== planet.slug).map((p) => (
+                <li key={p.id}>
+                  <Link
+                    href={`/planets/${p.slug}`}
+                    className="inline-flex items-center gap-2.5 rounded-full border border-rule px-4 py-2 text-[0.875rem] text-star-dim transition-colors duration-500 hover:border-azure-lit/55 hover:text-starlight"
+                  >
+                    <span className="relative block h-5 w-5 shrink-0 overflow-hidden rounded-full">
+                      <Image src={p.icon} alt="" fill sizes="20px" className="object-cover" />
+                    </span>
+                    {p.name.replace('Planet of ', '')}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        </Shell>
+      </main>
+      <Footer />
+    </>
   );
 }

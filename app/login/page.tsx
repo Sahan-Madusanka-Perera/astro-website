@@ -4,10 +4,17 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import Image from 'next/image';
+import Link from 'next/link';
+import { ArrowLeft, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 import { loginSchema, type LoginFormValues } from '@/lib/validations';
 import { useAuth } from '@/hooks/useAuth';
-import { Rocket } from 'lucide-react';
-import { toast } from 'sonner';
+import { StarField } from '@/components/cosmos/StarField';
+import { cn } from '@/lib/utils';
+
+const field =
+  'w-full rounded-sm border border-rule-lit bg-void-2/70 px-4 py-3 text-[0.9375rem] text-starlight transition-colors duration-300 placeholder:text-star-ghost focus:border-azure-lit focus:outline-none';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -18,85 +25,110 @@ export default function LoginPage() {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<LoginFormValues>({
-    resolver: zodResolver(loginSchema),
-  });
+  } = useForm<LoginFormValues>({ resolver: zodResolver(loginSchema) });
 
   const onSubmit = async (data: LoginFormValues) => {
     try {
       setIsLoading(true);
       await login(data.email, data.password);
-      toast.success('Login successful!');
+      toast.success('Signed in');
       router.push('/admin/dashboard');
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Login failed');
+      toast.error(
+        error instanceof Error ? error.message : 'Sign in failed. Check the address and password.'
+      );
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-purple-900 via-blue-900 to-black p-4">
-      <div className="w-full max-w-md">
-        <div className="rounded-2xl bg-white/10 backdrop-blur-lg p-8 shadow-2xl border border-white/20">
-          <div className="flex flex-col items-center mb-8">
-            <Rocket className="h-16 w-16 text-purple-400 mb-4" />
-            <h1 className="text-3xl font-bold text-white mb-2">Admin Login</h1>
-            <p className="text-gray-300">USJ Astronomy Club</p>
-          </div>
+    <main id="main" className="relative isolate flex min-h-[100svh] flex-col items-center justify-center overflow-hidden bg-void px-6 py-16">
+      <StarField density={150} meteorRate={2} />
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-200 mb-2">
-                Email
-              </label>
-              <input
-                {...register('email')}
-                type="email"
-                className="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                placeholder="admin@example.com"
-              />
-              {errors.email && (
-                <p className="mt-2 text-sm text-red-400">{errors.email.message}</p>
-              )}
-            </div>
+      <div
+        aria-hidden
+        className="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-[40rem] w-[40rem] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-20 blur-[110px]"
+        style={{ background: 'radial-gradient(circle, #0080c0, transparent 70%)' }}
+      />
 
-            <div>
-              <label className="block text-sm font-medium text-gray-200 mb-2">
-                Password
-              </label>
-              <input
-                {...register('password')}
-                type="password"
-                className="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                placeholder="••••••••"
-              />
-              {errors.password && (
-                <p className="mt-2 text-sm text-red-400">
-                  {errors.password.message}
-                </p>
-              )}
-            </div>
-
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full bg-purple-600 hover:bg-purple-700 text-white font-medium py-3 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isLoading ? 'Logging in...' : 'Login'}
-            </button>
-          </form>
-
-          <div className="mt-6 text-center">
-            <a
-              href="/"
-              className="text-sm text-purple-400 hover:text-purple-300 transition-colors"
-            >
-              ← Back to Home
-            </a>
-          </div>
+      <div className="relative z-10 w-full max-w-sm">
+        <div className="flex flex-col items-center text-center">
+          <span className="relative block h-14 w-14">
+            <Image
+              src="/images/astro_logo.png"
+              alt=""
+              fill
+              sizes="56px"
+              priority
+              className="object-contain"
+            />
+          </span>
+          <h1 className="display mt-6 text-[1.75rem]">Committee sign-in</h1>
+          <p className="label-chart mt-3">J&apos;pura Astronomy Club</p>
         </div>
+
+        <form onSubmit={handleSubmit(onSubmit)} className="mt-10 space-y-5" noValidate>
+          <div>
+            <label htmlFor="email" className="label-chart block">
+              Email
+            </label>
+            <input
+              id="email"
+              {...register('email')}
+              type="email"
+              autoComplete="email"
+              aria-invalid={!!errors.email}
+              aria-describedby={errors.email ? 'email-error' : undefined}
+              className={cn(field, 'mt-2.5', errors.email && 'border-destructive/70')}
+              placeholder="you@sjp.ac.lk"
+            />
+            {errors.email && (
+              <p id="email-error" className="mt-2 text-[0.8125rem] text-destructive">
+                {errors.email.message}
+              </p>
+            )}
+          </div>
+
+          <div>
+            <label htmlFor="password" className="label-chart block">
+              Password
+            </label>
+            <input
+              id="password"
+              {...register('password')}
+              type="password"
+              autoComplete="current-password"
+              aria-invalid={!!errors.password}
+              aria-describedby={errors.password ? 'password-error' : undefined}
+              className={cn(field, 'mt-2.5', errors.password && 'border-destructive/70')}
+              placeholder="••••••••"
+            />
+            {errors.password && (
+              <p id="password-error" className="mt-2 text-[0.8125rem] text-destructive">
+                {errors.password.message}
+              </p>
+            )}
+          </div>
+
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="flex w-full items-center justify-center gap-2.5 rounded-full bg-azure px-6 py-3.5 text-[0.9375rem] font-medium text-white transition-[background-color,box-shadow] duration-500 hover:bg-azure-lit hover:shadow-[0_10px_36px_-10px_rgba(41,163,221,0.65)] disabled:cursor-not-allowed disabled:opacity-55 disabled:hover:bg-azure disabled:hover:shadow-none"
+          >
+            {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
+            {isLoading ? 'Signing in' : 'Sign in'}
+          </button>
+        </form>
+
+        <Link
+          href="/"
+          className="group mt-8 inline-flex items-center gap-2 text-[0.875rem] text-star-faint transition-colors hover:text-azure-glow"
+        >
+          <ArrowLeft className="h-4 w-4 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:-translate-x-1" />
+          Back to the site
+        </Link>
       </div>
-    </div>
+    </main>
   );
 }
