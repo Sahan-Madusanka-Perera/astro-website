@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { FlipBook, type FlipBookHandle, type FlipBookState } from './FlipBook';
+import { preloadPageTurn } from '@/lib/magazine/sound';
 import type { MagazineOutlineItem, ReaderIssue } from '@/types/magazine';
 import { cn } from '@/lib/utils';
 
@@ -110,6 +111,9 @@ export function Reader({
   const [query, setQuery] = useState('');
 
   useEffect(() => {
+    // The page-turn clip is small; fetch it now so the first turn isn't late.
+    preloadPageTurn();
+
     // Browser-only facts, read after the first paint so the server render
     // and the hydrating render agree.
     const raf = requestAnimationFrame(() => {
