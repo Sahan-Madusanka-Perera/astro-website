@@ -28,6 +28,7 @@ const SITE_LINKS = [
   { name: 'About', href: '/#about' },
   { name: 'Events', href: '/#events' },
   { name: 'Gallery', href: '/#gallery' },
+  { name: 'Magazine', href: '/magazine' },
   { name: 'Board', href: '/board' },
 ];
 

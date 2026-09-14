@@ -3,6 +3,7 @@ import { PlanetsSection } from '@/components/home/PlanetsSection';
 import { AboutSection } from '@/components/home/AboutSection';
 import { EventsSection } from '@/components/home/EventsSection';
 import { GallerySection } from '@/components/home/GallerySection';
+import { MagazineSection } from '@/components/home/MagazineSection';
 import { FromOrbitSection } from '@/components/sky/FromOrbitSection';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
@@ -21,6 +22,7 @@ export default function HomePage() {
         <AboutSection />
         <EventsSection />
         <GallerySection />
+        <MagazineSection />
         <FromOrbitSection />
       </main>
       <Footer />

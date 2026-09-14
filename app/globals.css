@@ -260,6 +260,76 @@
   }
 }
 
+/* ── The magazine reader ──────────────────────────────────────────────────
+   Paper is the one surface on the site that is not the night: pages are
+   printed matter, lit from above, so their shading is black at low alpha
+   rather than a palette colour. ─────────────────────────────────────────── */
+@layer components {
+  .mag-img {
+    opacity: 0;
+    transition: opacity 280ms var(--ease-out-soft);
+  }
+  .mag-img[data-loaded] { opacity: 1; }
+
+  /* Links sit on a page only while it lies flat. */
+  .mag-book[data-flipping] .mag-links { visibility: hidden; }
+
+  /* Page edges: the thickness of the paper already read, and still to read. */
+  .mag-edge {
+    background: repeating-linear-gradient(
+      to right,
+      #d9dde3 0 1px,
+      #b8bec8 1px 2px
+    );
+    border-radius: var(--radius-instrument);
+  }
+
+  .mag-range {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 1.75rem;
+    background: transparent;
+    cursor: pointer;
+  }
+  .mag-range::-webkit-slider-runnable-track {
+    height: 2px;
+    border-radius: 2px;
+    background: linear-gradient(
+      to right,
+      var(--color-azure-lit) var(--fill, 0%),
+      var(--color-rule-lit) var(--fill, 0%)
+    );
+  }
+  .mag-range::-moz-range-track {
+    height: 2px;
+    border-radius: 2px;
+    background: var(--color-rule-lit);
+  }
+  .mag-range::-moz-range-progress {
+    height: 2px;
+    background: var(--color-azure-lit);
+  }
+  .mag-range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    margin-top: -6px;
+    border-radius: 99px;
+    background: var(--color-starlight);
+    box-shadow: 0 0 0 4px color-mix(in oklab, var(--color-azure-lit) 28%, transparent);
+    transition: transform 300ms var(--ease-out-expo);
+  }
+  .mag-range::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    border: 0;
+    border-radius: 99px;
+    background: var(--color-starlight);
+  }
+  .mag-range:hover::-webkit-slider-thumb { transform: scale(1.18); }
+  .mag-range:focus-visible { outline-offset: 2px; }
+}
+
 /* ── Respect the setting. Nothing here is load-bearing for comprehension. ── */
 @media (prefers-reduced-motion: reduce) {
   *,
