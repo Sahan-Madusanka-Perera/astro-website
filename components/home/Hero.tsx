@@ -1,5 +1,6 @@
 'use client';
 
+import { useRef } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -7,6 +8,7 @@ import { ArrowRight } from 'lucide-react';
 import { StarField } from '@/components/cosmos/StarField';
 import { ISSMarker } from '@/components/cosmos/ISSMarker';
 import { Shell } from '@/components/layout/Section';
+import { useScrollMotion } from '@/hooks/useScrollMotion';
 import { HorizonReadout } from './HorizonReadout';
 
 /* ---------------------------------------------------------------------------
@@ -34,6 +36,33 @@ const EASE = [0.16, 1, 0.3, 1] as const;
 
 export function Hero() {
   const reduced = useReducedMotion();
+  const sectionRef = useRef<HTMLElement>(null);
+
+  /* Leaving orbit. Scrolling out of the first viewport lifts the seal and
+     wordmark away, the astronaut climbs faster than the page because he is
+     nearer, and the horizon rises to meet the next section. Scrubbed to the
+     scrollbar: stop scrolling and the scene holds exactly where it is. */
+  useScrollMotion(sectionRef, ({ gsap }, section) => {
+    const q = gsap.utils.selector(section);
+    const vh = () => window.innerHeight;
+    gsap
+      .timeline({
+        defaults: { ease: 'none' },
+        scrollTrigger: {
+          trigger: section,
+          start: 'top top',
+          end: 'bottom top',
+          scrub: 0.4,
+          invalidateOnRefresh: true,
+        },
+      })
+      .to(q('[data-hero-content]'), { y: () => -vh() * 0.16, scale: 0.95, opacity: 0, duration: 0.62 }, 0)
+      .to(q('[data-hero-readout]'), { y: () => -vh() * 0.1, opacity: 0, duration: 0.45 }, 0)
+      // On a phone he starts beside the actions, so he climbs less and stays
+      // clear of the text as it fades.
+      .to(q('[data-hero-astro]'), { y: () => -vh() * (window.innerWidth < 640 ? 0.12 : 0.34), rotate: 9, duration: 1 }, 0)
+      .to(q('[data-hero-horizon]'), { y: () => -vh() * 0.2, duration: 1 }, 0);
+  });
 
   const rise = (delay: number) => ({
     initial: { opacity: 0, y: reduced ? 0 : 22 },
@@ -42,7 +71,7 @@ export function Hero() {
   });
 
   return (
-    <section className="relative isolate flex min-h-[100svh] flex-col overflow-hidden bg-void">
+    <section ref={sectionRef} className="relative isolate flex min-h-[100svh] flex-col overflow-hidden bg-void">
       <StarField density={210} constellation meteorRate={6} />
 
       {/* ── Earth's limb ──────────────────────────────────────────────────
@@ -50,6 +79,7 @@ export function Hero() {
           shadowed body below. The whole horizon costs a single element. */}
       <div
         aria-hidden
+        data-hero-horizon
         className="pointer-events-none absolute left-1/2 -z-10 -translate-x-1/2"
         style={{
           top: '82svh',
@@ -64,6 +94,7 @@ export function Hero() {
       />
 
       <Shell className="relative z-10 flex flex-1 flex-col items-center justify-center pt-[5.5rem] pb-10 text-center md:pt-24 md:pb-14">
+        <div data-hero-content className="flex flex-col items-center">
         {/* The seal, large enough that the telescope, the ringed planet and the
             crescent inside it actually read. It is the identity; with the props
             gone it can be the thing you look at. */}
@@ -117,20 +148,24 @@ export function Hero() {
             About the club
           </Link>
         </motion.div>
+        </div>
       </Shell>
 
       {/* ── The astronaut, drifting at the left ───────────────────────────
           Graded into the palette rather than dropped on top of it: the filter
           cools and dims him to the value of a distant, sunlit-from-behind
           figure. Remove the filter and he reads as a sticker again.
-          On a phone he moves to the clear band above the seal — the middle of
-          that layout is fully occupied and he lands on the wordmark there. */}
+          On a phone the middle of the layout is fully occupied and the band
+          above the seal is too shallow — tucked there he sat half off-screen
+          under the nav. So on a phone he floats low on the right, just above
+          Earth's limb and beside the actions, reaching in toward the page. */}
+      <div data-hero-astro aria-hidden className="pointer-events-none absolute inset-0 z-0">
       <motion.div
         aria-hidden
         initial={{ opacity: 0, scale: 0.92 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 1.6, delay: 0.45, ease: EASE }}
-        className="pointer-events-none absolute left-[-1.5rem] top-[8svh] z-0 h-28 w-28 sm:left-[-1rem] sm:top-[14svh] sm:h-44 sm:w-44 md:left-[2vw] md:top-[26svh] md:h-64 md:w-64 lg:left-[5vw] lg:h-72 lg:w-72"
+        className="pointer-events-none absolute right-[-0.75rem] top-[calc(82svh-6.5rem)] z-0 h-24 w-24 sm:right-auto sm:left-[-1rem] sm:top-[14svh] sm:h-44 sm:w-44 md:left-[2vw] md:top-[26svh] md:h-64 md:w-64 lg:left-[5vw] lg:h-72 lg:w-72"
       >
         <motion.div
           animate={
@@ -159,6 +194,7 @@ export function Hero() {
           />
         </motion.div>
       </motion.div>
+      </div>
 
       {/* ── The station, where it actually is ─────────────────────────────── */}
       <ISSMarker />
@@ -171,7 +207,9 @@ export function Hero() {
         className="relative z-10 pb-7 md:pb-8"
       >
         <Shell>
-          <HorizonReadout />
+          <div data-hero-readout>
+            <HorizonReadout />
+          </div>
         </Shell>
       </motion.div>
     </section>

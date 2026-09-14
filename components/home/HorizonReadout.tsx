@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useScrollMotion } from '@/hooks/useScrollMotion';
 import { useEvents } from '@/hooks/useEvents';
 import { phaseOf, limbPath, type MoonPhase } from '@/lib/moon';
 
@@ -36,6 +37,25 @@ function MoonGlyph({ p }: { p: number }) {
 
 export function HorizonReadout() {
   const { events } = useEvents();
+  const rowRef = useRef<HTMLDivElement>(null);
+  const latRef = useRef<HTMLSpanElement>(null);
+  const lonRef = useRef<HTMLSpanElement>(null);
+
+  /* The instrument taking a fix: on first load the coordinates run up from
+     zero and lock onto the campus. Only in the first moments after load — if
+     motion arrives late the reading is already on screen, and it stays put. */
+  useScrollMotion(rowRef, ({ gsap }) => {
+    const lat = latRef.current;
+    const lon = lonRef.current;
+    if (!lat || !lon || performance.now() > 1800) return;
+    const fix = { lat: 0, lon: 0 };
+    const write = () => {
+      lat.textContent = `${fix.lat.toFixed(4)}° N`;
+      lon.textContent = `${fix.lon.toFixed(4)}° E`;
+    };
+    write();
+    gsap.to(fix, { lat: 6.8524, lon: 79.904, duration: 2.2, delay: 0.5, ease: 'expo.out', onUpdate: write });
+  });
   const [moon, setMoon] = useState<MoonPhase | null>(null);
 
   // After mount only — the date differs across hydration.
@@ -52,12 +72,12 @@ export function HorizonReadout() {
   }, [events]);
 
   return (
-    <div className="flex flex-wrap items-end justify-between gap-x-8 gap-y-3.5">
+    <div ref={rowRef} className="flex flex-wrap items-end justify-between gap-x-8 gap-y-3.5">
       {/* the place */}
       <p className="label-chart basis-full leading-relaxed sm:basis-auto">
-        <span className="text-azure-haze/70">6.8524° N</span>
+        <span ref={latRef} data-numeric className="text-azure-haze/70">6.8524° N</span>
         <span className="mx-2 text-star-ghost">/</span>
-        <span className="text-azure-haze/70">79.9040° E</span>
+        <span ref={lonRef} data-numeric className="text-azure-haze/70">79.9040° E</span>
         <span className="mt-1.5 hidden lg:block">
           University of Sri Jayewardenepura
         </span>

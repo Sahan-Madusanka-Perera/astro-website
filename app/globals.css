@@ -143,6 +143,9 @@
     border-radius: 2px;
   }
   :focus:not(:focus-visible) { outline: none; }
+  /* The skip link hands focus to <main>; a ring around the whole page says
+     nothing. The next Tab lands on a real control, which does get one. */
+  main[tabindex="-1"]:focus { outline: none; }
 
   a { text-underline-offset: 0.22em; text-decoration-thickness: 1px; }
 

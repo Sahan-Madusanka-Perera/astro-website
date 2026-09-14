@@ -1,4 +1,5 @@
 import { cn } from '@/lib/utils';
+import { LineReveal } from '@/components/motion/LineReveal';
 
 /* ---------------------------------------------------------------------------
    The page's structural grammar. Every section on the site is built from
@@ -59,9 +60,12 @@ export function SectionHead({
     <header className={cn('relative', className)}>
       <div className="rule-h" />
       <div className="grid grid-cols-1 gap-x-10 gap-y-6 pt-8 md:grid-cols-12 md:pt-10">
-        <h2 className="display display-xl col-span-1 text-[clamp(2.1rem,6.4vw,4.25rem)] md:col-span-6">
+        <LineReveal
+          as="h2"
+          className="display display-xl col-span-1 text-[clamp(2.1rem,6.4vw,4.25rem)] md:col-span-6"
+        >
           {title}
-        </h2>
+        </LineReveal>
 
         {(lede || aside) && (
           <div className="col-span-1 flex flex-col gap-6 md:col-span-5 md:col-start-8 md:pt-2">

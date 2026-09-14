@@ -120,6 +120,19 @@ export function Navbar() {
           there is a lot of it before the content starts. */}
       <a
         href="#main"
+        onClick={(e) => {
+          /* A fragment jump alone moves the scroll, not the keyboard: <main>
+             isn't focusable, so the next Tab started back in the nav — and on
+             the home page, where <main> begins at the very top, nothing
+             visibly happened at all. Hand focus to <main> itself so the next
+             Tab lands on the first thing in the content. */
+          const main = document.getElementById('main');
+          if (!main) return;
+          e.preventDefault();
+          if (!main.hasAttribute('tabindex')) main.setAttribute('tabindex', '-1');
+          main.focus({ preventScroll: true });
+          main.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' });
+        }}
         className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-full focus:bg-azure focus:px-5 focus:py-2.5 focus:text-[0.875rem] focus:font-medium focus:text-white"
       >
         Skip to content

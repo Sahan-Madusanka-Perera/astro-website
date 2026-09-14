@@ -1,11 +1,12 @@
 'use client';
 
+import { useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { PLANETS } from '@/lib/planets-data';
 import { StarField } from '@/components/cosmos/StarField';
 import { Section, Shell, SectionHead } from '@/components/layout/Section';
-import { Reveal } from '@/components/motion/Reveal';
+import { useScrollMotion } from '@/hooks/useScrollMotion';
 
 /* ---------------------------------------------------------------------------
    The club's six divisions.
@@ -17,6 +18,30 @@ import { Reveal } from '@/components/motion/Reveal';
 --------------------------------------------------------------------------- */
 
 export function PlanetsSection() {
+  const orbitRef = useRef<HTMLDivElement>(null);
+
+  /* The ecliptic draws itself across the section as it scrolls into view,
+     and the six bodies settle onto it one after another. Scrubbed, so the
+     orbit assembles exactly as fast as the reader arrives at it. */
+  useScrollMotion(orbitRef, ({ gsap }, orbit) => {
+    const q = gsap.utils.selector(orbit);
+    const tl = gsap.timeline({
+      scrollTrigger: { trigger: orbit, start: 'top 92%', end: 'top 40%', scrub: 0.6 },
+    });
+    const line = q('[data-ecliptic]');
+    if (line.length) {
+      tl.fromTo(line, { scaleX: 0 }, { scaleX: 1, ease: 'none', duration: 1 }, 0);
+    }
+    // Opacity, not autoAlpha: a hidden planet must still take keyboard focus,
+    // and focusing it scrolls the orbit into view, which reveals it.
+    tl.fromTo(
+      q('[data-planet]'),
+      { y: -56, opacity: 0 },
+      { y: 0, opacity: 1, ease: 'power3.out', duration: 0.55, stagger: 0.09 },
+      0.12
+    );
+  });
+
   return (
     <Section id="planets" className="bg-void pt-28 pb-24 md:pt-40 md:pb-32">
       <StarField density={110} meteorRate={0} className="fade-edge-y opacity-70" />
@@ -33,17 +58,18 @@ export function PlanetsSection() {
         />
 
         {/* ── The ecliptic ─────────────────────────────────────────────── */}
-        <div className="relative mt-20 md:mt-28">
+        <div ref={orbitRef} className="relative mt-20 md:mt-28">
           <div
             aria-hidden
-            className="absolute inset-x-0 top-[3.25rem] hidden h-px bg-gradient-to-r from-transparent via-azure-lit/25 to-transparent lg:block lg:top-[4.5rem]"
+            data-ecliptic
+            className="absolute inset-x-0 top-[3.25rem] hidden h-px origin-left bg-gradient-to-r from-transparent via-azure-lit/25 to-transparent lg:block lg:top-[4.5rem]"
           />
 
           <ul className="relative grid grid-cols-2 gap-x-6 gap-y-14 sm:grid-cols-3 sm:gap-x-8 lg:grid-cols-6 lg:gap-x-5">
-            {PLANETS.map((planet, i) => {
+            {PLANETS.map((planet) => {
               const short = planet.name.replace('Planet of ', '');
               return (
-                <Reveal as="li" key={planet.id} delay={i * 65}>
+                <li key={planet.id} data-planet>
                   <Link
                     href={`/planets/${planet.slug}`}
                     className="group flex flex-col items-center text-center"
@@ -85,7 +111,7 @@ export function PlanetsSection() {
                       {planet.managers.length + 1} people
                     </span>
                   </Link>
-                </Reveal>
+                </li>
               );
             })}
           </ul>

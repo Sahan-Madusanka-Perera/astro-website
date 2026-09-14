@@ -323,9 +323,13 @@ export function FlipBook({ pages, images, initialPage = 0, sound = true, onChang
         paper.style.visibility = 'visible';
         paper.style.transform = fr.flap.transform;
         paper.style.clipPath = fr.flap.clip;
-        // The back of a single page has nowhere to lie but off the page:
-        // it fades out as it goes rather than appearing beside the book.
-        paper.style.opacity = String(clamp((f.P.x + lo.W) / (lo.W * 0.55), 0, 1));
+        // A turned single page has nowhere to lie but past the page's left
+        // edge. On a phone the page fills the screen, so the sheet just slides
+        // off it — fading it there read as the page vanishing. Only where the
+        // stage has real empty room beside the page would the sheet come to
+        // rest in view, so only there does it fade over the last stretch.
+        const roomBeside = lo.left > lo.W * 0.25;
+        paper.style.opacity = roomBeside ? String(clamp((f.P.x + lo.W) / (lo.W * 0.35), 0, 1)) : '1';
         if (paperShadowRef.current) showShadow(paperShadowRef.current, fr.flap.shadow, SHADOW_FLAP);
       }
     } else {
@@ -1141,7 +1145,12 @@ export function FlipBook({ pages, images, initialPage = 0, sound = true, onChang
                     className="mag-img absolute inset-0 h-full w-full object-fill"
                     onLoad={(e) => {
                       const el = e.currentTarget;
-                      el.decode().catch(() => undefined).finally(() => (el.dataset.loaded = '1'));
+                      // Show it as soon as it has arrived. decode() only warms
+                      // pages that are not on screen yet; the fade must never
+                      // wait on it, or a page can sit blank while a busy or
+                      // backgrounded tab gets round to decoding.
+                      el.dataset.loaded = '1';
+                      el.decode().catch(() => undefined);
                     }}
                   />
                   {zoomed && isVisible && (
