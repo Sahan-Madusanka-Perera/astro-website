@@ -16,7 +16,7 @@ export const revalidate = 60;
 export const metadata: Metadata = {
   title: 'Magazine',
   description:
-    "The J'pura Astronomy Club e-magazine — observing reports, astrophotography and the people behind them. Read every issue in the browser.",
+    "Every issue of the J'pura Astronomy Club magazine, readable in your browser.",
 };
 
 const coverOf = (m: MagazineSummary) => issueImages(m)[0];
@@ -36,7 +36,7 @@ export default async function MagazinePage() {
         <Shell className="relative z-10 pt-28 pb-24 md:pt-36 md:pb-32">
           <SectionHead
             title={<>The club,<br />in print.</>}
-            lede="Observing reports, astrophotography, interviews and whatever the committee couldn't fit on a poster. Every issue opens right here — turn the pages like paper."
+            lede="Every issue of the J'pura Astronomy Club magazine. Open one to read it in your browser."
             aside={
               issues.length > 0 ? (
                 <p className="label-chart" data-numeric>

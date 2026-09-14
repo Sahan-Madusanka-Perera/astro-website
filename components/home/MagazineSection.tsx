@@ -21,7 +21,7 @@ export async function MagazineSection() {
       <Shell>
         <SectionHead
           title={<>Read the magazine.</>}
-          lede="The club's e-magazine — observing reports, astrophotography and the people behind them. It opens right here and turns like paper."
+          lede="The latest issue of the club magazine. Read it here in your browser."
           aside={
             issues.length > 1 ? (
               <Link
