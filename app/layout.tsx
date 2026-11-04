@@ -87,6 +87,15 @@ export default function RootLayout({
      in the first build — an astronaut and a satellite — were cut: a
      different medium from the authored sky behind them, and the loudest
      stock-space signal on the page. No props; the sky is the subject.
+     FIRST VIEWPORT (redesigned 2026-10-29, at the user's request — the
+     centred seal-and-arc hero read as boring): a long exposure facing
+     north from the hills. Star trails wheel round the pole, which at
+     6.85° N sits just over the ridgeline above a small observatory; the
+     club's refractor from the seal stands in the foreground. The
+     wordmark is set between the hills and sets behind the near ridge
+     on scroll; the planes part by depth, and on a desktop pointer they
+     shift against the cursor. The annotation row and both actions stay
+     in the foreground. Drawn, not photographed — still no props.
      FORM: Insignia + star atlas — the incumbent deep-space world
      inherited from code and seal, corrected to the seal's own azure.
      FINISH: unreviewed and undocumented is unfinished; this build ends

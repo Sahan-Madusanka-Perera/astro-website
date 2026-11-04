@@ -1,217 +1,352 @@
 'use client';
 
-import { useRef } from 'react';
-import { motion, useReducedMotion } from 'framer-motion';
-import Image from 'next/image';
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
-import { StarField } from '@/components/cosmos/StarField';
-import { ISSMarker } from '@/components/cosmos/ISSMarker';
 import { Shell } from '@/components/layout/Section';
 import { useScrollMotion } from '@/hooks/useScrollMotion';
 import { HorizonReadout } from './HorizonReadout';
+import { StarTrails, type Pole } from './StarTrails';
+import {
+  DOME_TOP, FarRidge, MidRidge, NearRidge, Observatory, PLATEAU, POLE_X, SCOPE_X, Telescope,
+} from './Landscape';
 
 /* ---------------------------------------------------------------------------
-   The first viewport.
+   The first viewport: a long exposure from a dark-sky site.
 
-   A view from low orbit: Earth's limb as a single hairline arc with its
-   atmosphere glowing along it, the club's seal at a size where its own drawing
-   reads, and the campus coordinates set on the horizon in mono — the way a
-   plate is annotated.
+   The camera faces north from the hills. The stars wheel round the pole,
+   which at the campus's latitude sits just over the ridgeline, above a small
+   observatory; the club's telescope stands in the foreground, trained on the
+   sky. The wordmark is set in the landscape rather than on top of it — in
+   front of the far hills, behind the near one.
 
-   Two figures share it, both earning their place rather than decorating:
+   Five planes, each moving at its own rate:
 
-   · The astronaut drifts at the left, graded down into the night — dimmed,
-     desaturated and cooled so the light on him matches the light in the field
-     behind him. Atmospheric perspective does the work a cutout can't: dimmer
-     reads as further away, so he sits in the sky rather than on top of it.
-   · The station at the right is the real ISS. Its readout is live and its
-     drift follows the station's true longitude, which is what separates an
-     instrument from an ornament.
+     sky ─ far ridge ─ middle ridge + observatory ─ wordmark ─ near ridge
+                                                               + telescope
+                                                               + the content
 
-   Everything else is entrance motion only — one settle on load, then stillness.
+   · Scrolling away runs the exposure on through the night, and the planes
+     part: the sky barely moves, the ridges sink at their own rates, and the
+     wordmark sets behind the near hill like a moonset. Scrubbed, so it holds
+     wherever the reader stops.
+   · On a desktop pointer, the planes shift a few pixels against the cursor —
+     the parallax of a head moving. The foreground and everything clickable
+     stay put.
+   · On load the shutter opens, the wordmark pulls into focus, and the
+     telescope slews up off the horizontal. All CSS, so it plays before
+     hydration and rests in its final state if it never plays at all.
 --------------------------------------------------------------------------- */
 
-const EASE = [0.16, 1, 0.3, 1] as const;
+/** How far each plane lags the page, as a fraction of the hero's height. */
+const LAG = { sky: 0.74, far: 0.6, mid: 0.5, mark: 0.4 } as const;
+
+/** Sum offsets up the offsetParent chain — layout position, ignoring the
+ *  parallax transforms, so a mid-scroll resize still measures the rest pose. */
+function offsetIn(el: HTMLElement, root: HTMLElement) {
+  let x = 0;
+  let y = 0;
+  let n: HTMLElement | null = el;
+  while (n && n !== root) {
+    x += n.offsetLeft;
+    y += n.offsetTop;
+    n = n.offsetParent as HTMLElement | null;
+  }
+  return { x, y };
+}
+
+const useIsoLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect;
+
+type Vars = CSSProperties & Record<`--${string}`, string | number>;
+
+/** Plays one of the hero's entrance keyframes, `at` seconds after load. */
+const enter = (name: string, at: number, extra: Vars = {}): Vars => ({
+  '--in': name,
+  '--in-at': `${at}s`,
+  ...extra,
+});
 
 export function Hero() {
-  const reduced = useReducedMotion();
   const sectionRef = useRef<HTMLElement>(null);
+  const skyRef = useRef<HTMLDivElement>(null);
+  const domeRef = useRef<HTMLDivElement>(null);
+  const groundRef = useRef<HTMLDivElement>(null);
+  const exposureRef = useRef<HTMLSpanElement>(null);
+  const [pole, setPole] = useState<Pole | null>(null);
 
-  /* Leaving orbit. Scrolling out of the first viewport lifts the seal and
-     wordmark away, the astronaut climbs faster than the page because he is
-     nearer, and the horizon rises to meet the next section. Scrubbed to the
-     scrollbar: stop scrolling and the scene holds exactly where it is. */
+  /* Find the pole over the observatory's roof — about four degrees of sky
+     above it. Re-measured whenever the hero or its foreground changes size. */
+  useIsoLayoutEffect(() => {
+    const section = sectionRef.current;
+    const sky = skyRef.current;
+    const dome = domeRef.current;
+    const ground = groundRef.current;
+    if (!section || !sky || !dome || !ground) return;
+
+    const measure = () => {
+      const H = section.offsetHeight;
+      const d = offsetIn(dome, section);
+      const s = offsetIn(sky, section);
+      const px = d.x + dome.offsetWidth / 2;
+      const py = d.y + dome.offsetHeight * DOME_TOP - H * 0.05;
+      // The airglow sits on the hills, wherever the hills are.
+      sky.style.setProperty('--hz', `${(py - s.y).toFixed(0)}px`);
+      sky.style.setProperty('--hx', `${(px - s.x).toFixed(0)}px`);
+      setPole((prev) => {
+        const next = { x: px - s.x, y: py - s.y };
+        return prev && Math.abs(prev.x - next.x) < 0.5 && Math.abs(prev.y - next.y) < 0.5
+          ? prev
+          : next;
+      });
+    };
+
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(section);
+    ro.observe(ground);
+    return () => ro.disconnect();
+  }, []);
+
+  /* Leaving the site. Each plane lags the page by its depth; the near ridge
+     and the content ride with it. */
   useScrollMotion(sectionRef, ({ gsap }, section) => {
     const q = gsap.utils.selector(section);
-    const vh = () => window.innerHeight;
-    gsap
-      .timeline({
-        defaults: { ease: 'none' },
-        scrollTrigger: {
-          trigger: section,
-          start: 'top top',
-          end: 'bottom top',
-          scrub: 0.4,
-          invalidateOnRefresh: true,
-        },
-      })
-      .to(q('[data-hero-content]'), { y: () => -vh() * 0.16, scale: 0.95, opacity: 0, duration: 0.62 }, 0)
-      .to(q('[data-hero-readout]'), { y: () => -vh() * 0.1, opacity: 0, duration: 0.45 }, 0)
-      // On a phone he starts beside the actions, so he climbs less and stays
-      // clear of the text as it fades.
-      .to(q('[data-hero-astro]'), { y: () => -vh() * (window.innerWidth < 640 ? 0.12 : 0.34), rotate: 9, duration: 1 }, 0)
-      .to(q('[data-hero-horizon]'), { y: () => -vh() * 0.2, duration: 1 }, 0);
+    const H = () => section.offsetHeight;
+    const tl = gsap.timeline({
+      defaults: { ease: 'none', duration: 1 },
+      scrollTrigger: {
+        trigger: section,
+        start: 'top top',
+        end: 'bottom top',
+        scrub: 0.3,
+        invalidateOnRefresh: true,
+      },
+    });
+    (Object.keys(LAG) as Array<keyof typeof LAG>).forEach((plane) => {
+      tl.to(q(`[data-depth="${plane}"]`), { y: () => H() * LAG[plane] }, 0);
+    });
   });
 
-  const rise = (delay: number) => ({
-    initial: { opacity: 0, y: reduced ? 0 : 22 },
-    animate: { opacity: 1, y: 0 },
-    transition: { duration: 1.1, delay, ease: EASE },
-  });
+  /* A head moving, on a desktop pointer only. Eased toward the cursor and
+     stopped once it arrives, so nothing runs while the pointer is still.
+     Each plane's translate is written to it directly: a custom property on
+     the section would restyle the whole hero on every frame. */
+  useEffect(() => {
+    const section = sectionRef.current;
+    if (!section) return;
+    if (
+      window.matchMedia('(pointer: coarse)').matches ||
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    ) return;
+
+    const planes = Array.from(section.querySelectorAll<HTMLElement>('.hero-par')).map((el) => ({
+      el,
+      dx: parseFloat(el.style.getPropertyValue('--dx')) || 0,
+      dy: parseFloat(el.style.getPropertyValue('--dy')) || 0,
+    }));
+
+    let tx = 0, ty = 0, x = 0, y = 0;
+    let raf = 0;
+    let last = 0;
+    const step = (now: number) => {
+      const k = 1 - Math.exp(-Math.min(64, now - last) / 220);
+      last = now;
+      x += (tx - x) * k;
+      y += (ty - y) * k;
+      for (const p of planes) {
+        p.el.style.translate = `${(x * p.dx).toFixed(2)}px ${(y * p.dy).toFixed(2)}px`;
+      }
+      raf = Math.abs(tx - x) + Math.abs(ty - y) > 0.002 ? requestAnimationFrame(step) : 0;
+    };
+    const onMove = (e: PointerEvent) => {
+      if (window.scrollY > section.offsetHeight) return;
+      tx = (e.clientX / window.innerWidth) * 2 - 1;
+      ty = (e.clientY / window.innerHeight) * 2 - 1;
+      if (!raf) {
+        last = performance.now();
+        raf = requestAnimationFrame(step);
+      }
+    };
+    window.addEventListener('pointermove', onMove, { passive: true });
+    return () => {
+      window.removeEventListener('pointermove', onMove);
+      cancelAnimationFrame(raf);
+    };
+  }, []);
 
   return (
-    <section ref={sectionRef} className="relative isolate flex min-h-[100svh] flex-col overflow-hidden bg-void">
-      <StarField density={210} constellation meteorRate={6} />
-
-      {/* ── Earth's limb ──────────────────────────────────────────────────
-          One hairline arc, an atmosphere gradient along it, and the planet's
-          shadowed body below. The whole horizon costs a single element. */}
-      <div
-        aria-hidden
-        data-hero-horizon
-        className="pointer-events-none absolute left-1/2 -z-10 -translate-x-1/2"
-        style={{
-          top: '82svh',
-          width: '215vw',
-          height: '215vw',
-          borderRadius: '50%',
-          background:
-            'radial-gradient(circle at 50% 0%, rgba(41,163,221,0.16) 0%, rgba(0,72,112,0.10) 18%, rgba(4,6,15,0.92) 42%, #04060f 60%)',
-          boxShadow:
-            '0 -1px 0 0 rgba(111,208,247,0.32), 0 -14px 60px -10px rgba(41,163,221,0.32), 0 -60px 180px -30px rgba(0,128,192,0.22)',
-        }}
-      />
-
-      <Shell className="relative z-10 flex flex-1 flex-col items-center justify-center pt-[5.5rem] pb-10 text-center md:pt-24 md:pb-14">
-        <div data-hero-content className="flex flex-col items-center">
-        {/* The seal, large enough that the telescope, the ringed planet and the
-            crescent inside it actually read. It is the identity; with the props
-            gone it can be the thing you look at. */}
-        <motion.div
-          {...rise(0.05)}
-          className="relative mb-6 h-[min(5.5rem,12svh)] w-[min(5.5rem,12svh)] md:mb-8 md:h-[min(9rem,17svh)] md:w-[min(9rem,17svh)]"
+    <section
+      ref={sectionRef}
+      className="relative isolate flex min-h-[100svh] flex-col overflow-hidden bg-void"
+    >
+      {/* ── The sky ───────────────────────────────────────────────────────── */}
+      <div data-depth="sky" aria-hidden className="pointer-events-none absolute inset-0 z-0">
+        <div
+          ref={skyRef}
+          className="hero-par hero-sky absolute inset-[-3%]"
+          style={{ '--dx': '-10px', '--dy': '-6px' } as Vars}
         >
-          <Image
-            src="/images/astro_logo.png"
-            alt=""
-            fill
-            sizes="(max-width: 768px) 96px, 144px"
-            priority
-            className="object-contain drop-shadow-[0_0_38px_rgba(41,163,221,0.2)]"
-          />
-        </motion.div>
+          <StarTrails pole={pole} scopeRef={sectionRef} exposureRef={exposureRef} />
 
-        <motion.h1 {...rise(0.14)} className="display display-xl">
-          <span className="block text-[min(11.5vw,8.5rem,16svh)]">
-            J&apos;PURA
-          </span>
-          <span className="mt-1 block text-[min(3.55vw,2.4rem,5svh)] font-normal tracking-[0.34em] text-azure-glow md:mt-2.5 md:tracking-[0.42em]">
-            ASTRONOMY&nbsp;CLUB
-          </span>
-        </motion.h1>
-
-        <motion.p
-          {...rise(0.24)}
-          className="mt-6 max-w-[44ch] text-balance text-[1.0625rem] leading-[1.6] text-star-dim md:mt-7 md:text-[1.1875rem]"
-        >
-          We keep the telescopes, teach the sky, and drive out past the
-          streetlights to find it properly dark.
-        </motion.p>
-
-        <motion.div
-          {...rise(0.34)}
-          className="mt-8 flex flex-col items-center gap-4 sm:flex-row sm:gap-5"
-        >
-          <Link
-            href="#events"
-            className="group inline-flex items-center gap-2.5 rounded-full bg-azure px-7 py-3.5 text-[0.9375rem] font-medium text-white transition-[background-color,box-shadow,transform] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:bg-azure-lit hover:shadow-[0_10px_40px_-8px_rgba(41,163,221,0.65)]"
-          >
-            What&apos;s on
-            <ArrowRight className="h-4 w-4 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-1" />
-          </Link>
-
-          <Link
-            href="#about"
-            className="inline-flex items-center gap-2.5 rounded-full border border-rule-lit px-7 py-3.5 text-[0.9375rem] font-medium text-star-dim transition-colors duration-500 hover:border-azure-lit/60 hover:text-starlight"
-          >
-            About the club
-          </Link>
-        </motion.div>
         </div>
-      </Shell>
-
-      {/* ── The astronaut, drifting at the left ───────────────────────────
-          Graded into the palette rather than dropped on top of it: the filter
-          cools and dims him to the value of a distant, sunlit-from-behind
-          figure. Remove the filter and he reads as a sticker again.
-          On a phone the middle of the layout is fully occupied and the band
-          above the seal is too shallow — tucked there he sat half off-screen
-          under the nav. So on a phone he floats low on the right, just above
-          Earth's limb and beside the actions, reaching in toward the page. */}
-      <div data-hero-astro aria-hidden className="pointer-events-none absolute inset-0 z-0">
-      <motion.div
-        aria-hidden
-        initial={{ opacity: 0, scale: 0.92 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 1.6, delay: 0.45, ease: EASE }}
-        className="pointer-events-none absolute right-[-0.75rem] top-[calc(82svh-6.5rem)] z-0 h-24 w-24 sm:right-auto sm:left-[-1rem] sm:top-[14svh] sm:h-44 sm:w-44 md:left-[2vw] md:top-[26svh] md:h-64 md:w-64 lg:left-[5vw] lg:h-72 lg:w-72"
-      >
-        <motion.div
-          animate={
-            reduced
-              ? undefined
-              : { y: [0, -18, 0], x: [0, 7, 0], rotate: [-2, 2.5, -2] }
-          }
-          transition={{
-            y: { duration: 14, repeat: Infinity, ease: 'easeInOut' },
-            x: { duration: 19, repeat: Infinity, ease: 'easeInOut' },
-            rotate: { duration: 23, repeat: Infinity, ease: 'easeInOut' },
-          }}
-          className="relative h-full w-full"
-        >
-          <Image
-            src="/images/astronaut.webp"
-            alt=""
-            fill
-            sizes="(max-width: 640px) 112px, (max-width: 1024px) 256px, 288px"
-            priority
-            className="object-contain"
-            style={{
-              filter:
-                'brightness(0.86) saturate(0.72) contrast(1.04) sepia(0.14) hue-rotate(172deg) drop-shadow(0 18px 44px rgba(0,0,0,0.7))',
-            }}
-          />
-        </motion.div>
-      </motion.div>
       </div>
 
-      {/* ── The station, where it actually is ─────────────────────────────── */}
-      <ISSMarker />
+      {/* Polaris, annotated the way a plate is — over the hills, since an
+          annotation sits on the plate rather than in the scene. It travels
+          with the sky. */}
+      <div data-depth="sky" aria-hidden className="pointer-events-none absolute inset-0 z-[3]">
+        <div className="hero-par absolute inset-[-3%]" style={{ '--dx': '-10px', '--dy': '-6px' } as Vars}>
+          {pole && (
+            <div className="absolute" style={{ left: pole.x, top: pole.y }}>
+              <div
+                className="hero-in text-shadow-void absolute right-4 top-0 flex -translate-y-1/2 flex-row-reverse items-center gap-3"
+                style={enter('hero-fade', 2.2, { '--in-dur': '1.4s' })}
+              >
+                <span className="block h-px w-7 bg-azure-glow/40 sm:w-9" />
+                <span className="flex flex-col items-end gap-1.5 whitespace-nowrap" data-numeric>
+                  <span className="label-chart text-azure-haze/85">Polaris</span>
+                  <span className="label-chart">Alt 6.9°</span>
+                  <span className="label-chart">
+                    Exp <span ref={exposureRef}>0h 00m</span>
+                  </span>
+                </span>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
 
-      {/* ── The horizon annotation ────────────────────────────────────────── */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 1.2, delay: 0.8 }}
-        className="relative z-10 pb-7 md:pb-8"
+      <div className="flex-1" />
+
+      {/* ── The wordmark, between the hills ───────────────────────────────── */}
+      <div
+        data-depth="mark"
+        className="relative z-[3] pb-[24svh] pt-28 [--wm:min(21.5vw,15svh)] sm:pb-[22svh] sm:[--wm:min(17vw,19svh)] lg:pb-[16.5svh] lg:[--wm:min(12vw,12.5rem,21svh)]"
       >
         <Shell>
-          <div data-hero-readout>
-            <HorizonReadout />
+          <div className="hero-par" style={{ '--dx': '-12px', '--dy': '-6px' } as Vars}>
+            <h1 className="display display-xl text-shadow-void">
+              <span
+                className="hero-in block text-[length:var(--wm)] leading-[0.84] tracking-[-0.04em]"
+                style={enter('hero-focus', 0.3, { '--in-dur': '2s' })}
+              >
+                J&apos;PURA
+              </span>
+              <span
+                className="hero-in mt-[calc(var(--wm)*0.12)] block text-[length:calc(var(--wm)*0.235)] font-normal leading-none tracking-[0.47em] text-azure-glow"
+                style={enter('hero-track', 0.8, { '--in-dur': '2s', '--track-from': '0.85em' })}
+              >
+                ASTRONOMY&nbsp;CLUB
+              </span>
+            </h1>
           </div>
         </Shell>
-      </motion.div>
+      </div>
+
+      {/* ── The ground ────────────────────────────────────────────────────── */}
+      <div ref={groundRef} className="relative">
+        {/* the far ridge, palest, with the hairline */}
+        <div
+          data-depth="far"
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 bottom-full z-[1] h-[28svh]"
+        >
+          <div
+            className="hero-par absolute inset-y-0 -inset-x-8"
+            style={{ '--dx': '-16px', '--dy': '-8px' } as Vars}
+          >
+            <div className="hero-in absolute inset-0" style={enter('hero-settle', 0, { '--in-dur': '2.6s', '--settle': '18px' })}>
+              <FarRidge className="text-ridge-far" />
+              <div className="absolute inset-x-0 bottom-0 h-[58%] bg-gradient-to-t from-azure-lit/[0.09] to-transparent" />
+            </div>
+          </div>
+        </div>
+
+        {/* the middle ridge, and the observatory under the pole */}
+        <div
+          data-depth="mid"
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 bottom-full z-[2] h-[19svh]"
+        >
+          <div
+            className="hero-par absolute inset-y-0 -inset-x-8"
+            style={{ '--dx': '-24px', '--dy': '-12px' } as Vars}
+          >
+            <div className="hero-in absolute inset-0 text-ridge-mid" style={enter('hero-settle', 0, { '--in-dur': '2.6s', '--settle': '30px' })}>
+              <MidRidge />
+              <div
+                ref={domeRef}
+                className="absolute bottom-0 h-[min(16svh,40vw)] w-[calc(min(16svh,40vw)*260/170)]"
+                style={{ left: `${POLE_X * 100}%`, marginLeft: 'calc(min(16svh,40vw) * -130 / 170)' }}
+              >
+                <Observatory className="block h-full w-full" />
+              </div>
+              <div className="absolute inset-x-0 bottom-0 h-[50%] bg-gradient-to-t from-azure-lit/[0.07] to-transparent" />
+            </div>
+          </div>
+        </div>
+
+        {/* the near ridge, and the club's telescope on it */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 bottom-[calc(100%-2px)] z-[4] h-[13svh]"
+        >
+          <div
+            className="hero-par absolute inset-y-0 -inset-x-12"
+            style={{ '--dx': '-34px' } as Vars}
+          >
+            <div className="hero-in absolute inset-0 text-void" style={enter('hero-settle', 0, { '--in-dur': '2.6s', '--settle': '46px' })}>
+              <NearRidge />
+              <div
+                className="absolute h-[min(clamp(6rem,20svh,12rem),32vw)] w-[calc(min(clamp(6rem,20svh,12rem),32vw)*140/170)] -translate-x-1/2"
+                style={{ left: `${SCOPE_X * 100}%`, bottom: `calc(${PLATEAU * 100}% - 1px)` }}
+              >
+                <Telescope className="block h-full w-full" />
+              </div>
+            </div>
+          </div>
+        </div>
+        <div aria-hidden className="absolute inset-0 z-[4] bg-void" />
+
+        {/* ── The foreground: what to read, and what to do ─────────────────── */}
+        <div className="relative z-[5]">
+          <Shell className="pb-6 md:pb-8">
+            <div className="flex flex-col gap-7 md:flex-row md:items-end md:justify-between md:gap-12">
+              <p
+                className="hero-in max-w-[40ch] text-pretty text-[1.0625rem] leading-[1.6] text-star-dim md:text-[1.1875rem]"
+                style={enter('hero-rise', 1.05)}
+              >
+                We keep the telescopes, teach the sky, and drive out past the
+                streetlights to find it properly dark.
+              </p>
+
+              <div className="hero-in flex shrink-0 items-center gap-3 sm:gap-4" style={enter('hero-rise', 1.2)}>
+                <Link
+                  href="#events"
+                  className="group inline-flex items-center gap-2.5 rounded-full bg-azure px-6 py-3.5 text-[0.9375rem] font-medium text-white transition-[background-color,box-shadow,transform] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:bg-azure-lit hover:shadow-[0_10px_40px_-8px_rgba(41,163,221,0.65)] sm:px-7"
+                >
+                  What&apos;s on
+                  <ArrowRight className="h-4 w-4 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-1" />
+                </Link>
+                <Link
+                  href="#about"
+                  className="inline-flex items-center gap-2.5 rounded-full border border-rule-lit px-6 py-3.5 text-[0.9375rem] font-medium text-star-dim transition-colors duration-500 hover:border-azure-lit/60 hover:text-starlight sm:px-7"
+                >
+                  About the club
+                </Link>
+              </div>
+            </div>
+
+            <div
+              className="hero-in rule-h mt-7 origin-left md:mt-9"
+              style={enter('hero-draw', 1.35, { '--in-dur': '1.8s' })}
+            />
+            <div className="hero-in pt-5" style={enter('hero-fade', 1.5)}>
+              <HorizonReadout />
+            </div>
+          </Shell>
+        </div>
+      </div>
     </section>
   );
 }

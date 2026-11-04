@@ -28,6 +28,15 @@
         One role only: live / now / today. Never decorative. ───────────────── */
   --color-sodium:      #f0b429;
 
+  /* ── The hero's night: a sky that lifts toward the horizon, and hills
+        each a step darker as they come nearer — the nearest is the void
+        itself. Atmospheric perspective, not decoration. ───────────────────── */
+  --color-sky-1:       #050915;  /* the hero sky, overhead → horizon         */
+  --color-sky-2:       #0a172e;
+  --color-sky-3:       #12294c;  /* airglow on the ridgeline                 */
+  --color-ridge-far:   #08132a;
+  --color-ridge-mid:   #050c1c;
+
   /* ── Starlight: the type ramp ──────────────────────────────────────────── */
   --color-starlight:   #f2f6fb;  /* headings                                  */
   --color-star-dim:    #b3c0d4;  /* body — 8.9:1 on void                      */
@@ -241,6 +250,80 @@
       0 18px 44px -18px oklch(0 0 0 / 80%),
       0 0 60px -30px var(--color-azure-lit);
   }
+}
+
+/* ── The hero ─────────────────────────────────────────────────────────────
+   Its entrance is CSS rather than script, so it plays on first paint whether
+   or not the page has hydrated, and every keyframe runs *from* a displaced
+   state to the element's resting one — if it never plays, the hero is simply
+   there. ─────────────────────────────────────────────────────────────────── */
+@layer components {
+  /* The sky behind the trails: void overhead, lifting toward an azure
+     airglow along the hills, brightest under the pole. The hero sets the
+     pole's position (--hx, --hz), so the glow sits on the ridgeline at every
+     size instead of at a guessed percentage. */
+  .hero-sky {
+    background:
+      radial-gradient(38% 24% at var(--hx, 70%) var(--hz, 72%), rgb(0 128 192 / 0.22), rgb(0 104 160 / 0.07) 55%, transparent 82%),
+      linear-gradient(
+        to bottom,
+        var(--color-void) 0,
+        var(--color-sky-1) calc(var(--hz, 72%) - 50svh),
+        var(--color-sky-2) calc(var(--hz, 72%) - 22svh),
+        var(--color-sky-3) calc(var(--hz, 72%) - 6svh)
+      );
+  }
+
+  /* The hero's planes move every frame while it scrolls (`transform`, from
+     GSAP) or the pointer moves (`translate`, written inline from each plane's
+     --dx/--dy) — the two properties compose, so they never fight. Each gets
+     its own layer up front rather than being promoted mid-gesture. */
+  [data-depth] {
+    will-change: transform;
+  }
+  .hero-par {
+    will-change: translate;
+  }
+
+  .hero-in {
+    animation: var(--in) var(--in-dur, 1.4s) var(--ease-out-expo) var(--in-at, 0s) both;
+  }
+
+  /* The telescope slews up off the horizontal, the way a mount moves:
+     accelerating, then easing onto its target. */
+  .hero-aim {
+    transform: rotate(27deg);
+    animation: hero-slew 3s var(--ease-in-out-soft) 0.9s both;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hero-in, .hero-aim { animation: none; }
+  }
+}
+
+/* A focus pull: the wordmark sharpens out of the haze as it rises. */
+@keyframes hero-focus {
+  from { opacity: 0; filter: blur(18px); transform: translateY(14%); }
+}
+/* Tracking settles the way a plate is stamped. */
+@keyframes hero-track {
+  from { opacity: 0; letter-spacing: var(--track-from); }
+}
+@keyframes hero-rise {
+  from { opacity: 0; transform: translateY(16px); }
+}
+/* The ridges come up into frame, nearer ones further. */
+@keyframes hero-settle {
+  from { transform: translateY(var(--settle, 24px)); }
+}
+@keyframes hero-fade {
+  from { opacity: 0; }
+}
+@keyframes hero-slew {
+  from { transform: rotate(3deg); }
+}
+@keyframes hero-draw {
+  from { transform: scaleX(0); }
 }
 
 /* One slow sweep across a loading placeholder — a long exposure, not a pulse. */

@@ -26,7 +26,7 @@ export function PlanetsSection() {
   useScrollMotion(orbitRef, ({ gsap }, orbit) => {
     const q = gsap.utils.selector(orbit);
     const tl = gsap.timeline({
-      scrollTrigger: { trigger: orbit, start: 'top 92%', end: 'top 40%', scrub: 0.6 },
+      scrollTrigger: { trigger: orbit, start: 'top 92%', end: 'top 40%', scrub: 0.3 },
     });
     const line = q('[data-ecliptic]');
     if (line.length) {

@@ -49,7 +49,7 @@ export function AboutSection() {
      while the reader does. */
   useScrollMotion(joinRef, ({ gsap }, field) => {
     const q = gsap.utils.selector(field);
-    const through = () => ({ trigger: field, start: 'top bottom', end: 'bottom top', scrub: 0.5 });
+    const through = () => ({ trigger: field, start: 'top bottom', end: 'bottom top', scrub: 0.3 });
     gsap.fromTo(q('[data-join-ring="outer"]'), { rotate: 22 }, { rotate: -22, ease: 'none', scrollTrigger: through() });
     gsap.fromTo(q('[data-join-ring="inner"]'), { rotate: -28 }, { rotate: 18, ease: 'none', scrollTrigger: through() });
   });
