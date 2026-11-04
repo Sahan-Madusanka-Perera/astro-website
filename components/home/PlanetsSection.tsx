@@ -3,7 +3,8 @@
 import { useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { PLANETS } from '@/lib/planets-data';
+import { countWord, shortPlanetName } from '@/lib/club/shared';
+import type { ClubPlanet } from '@/types/club';
 import { StarField } from '@/components/cosmos/StarField';
 import { Section, Shell, SectionHead } from '@/components/layout/Section';
 import { useScrollMotion } from '@/hooks/useScrollMotion';
@@ -17,7 +18,13 @@ import { useScrollMotion } from '@/hooks/useScrollMotion';
    how a chart points at a thing.
 --------------------------------------------------------------------------- */
 
-export function PlanetsSection() {
+export interface PlanetSummary {
+  planet: ClubPlanet;
+  /** People on the current board's team for this planet. */
+  people: number;
+}
+
+export function PlanetsSection({ planets }: { planets: PlanetSummary[] }) {
   const orbitRef = useRef<HTMLDivElement>(null);
 
   /* The ecliptic draws itself across the section as it scrolls into view,
@@ -48,11 +55,11 @@ export function PlanetsSection() {
 
       <Shell className="relative z-10">
         <SectionHead
-          title={<>Six planets,<br />one orbit.</>}
-          lede="The club runs as six divisions. Each keeps its own people, its own remit, and its own corner of what we do — and they all turn around the same thing."
+          title={<>{countWord(planets.length)} {planets.length === 1 ? 'planet' : 'planets'},<br />one orbit.</>}
+          lede={`The club runs as ${countWord(planets.length).toLowerCase()} divisions. Each keeps its own people, its own remit, and its own corner of what we do — and they all turn around the same thing.`}
           aside={
             <p className="label-chart">
-              {PLANETS.length} divisions / est. 2017
+              {planets.length} divisions / est. 2017
             </p>
           }
         />
@@ -66,8 +73,8 @@ export function PlanetsSection() {
           />
 
           <ul className="relative grid grid-cols-2 gap-x-6 gap-y-14 sm:grid-cols-3 sm:gap-x-8 lg:grid-cols-6 lg:gap-x-5">
-            {PLANETS.map((planet) => {
-              const short = planet.name.replace('Planet of ', '');
+            {planets.map(({ planet, people }) => {
+              const short = shortPlanetName(planet.name);
               return (
                 <li key={planet.id} data-planet>
                   <Link
@@ -89,7 +96,7 @@ export function PlanetsSection() {
                           the one thing on this page that moves by itself. */}
                       <span className="relative block h-full w-full overflow-hidden rounded-full ring-1 ring-white/[0.09] transition-[transform,box-shadow] duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.07] group-hover:shadow-[0_0_50px_-12px_rgba(41,163,221,0.75)]">
                         <Image
-                          src={planet.icon}
+                          src={planet.icon_url || '/images/astro_logo.png'}
                           alt=""
                           fill
                           sizes="(max-width: 640px) 120px, (max-width: 1024px) 140px, 144px"
@@ -107,9 +114,11 @@ export function PlanetsSection() {
                     <span className="mt-1 block text-[0.9375rem] font-medium leading-snug text-starlight transition-colors duration-500 group-hover:text-azure-glow">
                       {short}
                     </span>
-                    <span className="label-chart mt-2 block opacity-0 transition-opacity duration-500 group-hover:opacity-100">
-                      {planet.managers.length + 1} people
+                    {people > 0 && (
+                      <span className="label-chart mt-2 block opacity-0 transition-opacity duration-500 group-hover:opacity-100">
+                      {people} {people === 1 ? 'person' : 'people'}
                     </span>
+                    )}
                   </Link>
                 </li>
               );

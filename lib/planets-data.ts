@@ -1,275 +1,110 @@
-import type { Planet } from '@/types/planet';
+import type { ClubBoard, ClubMember, ClubPlanet } from '@/types/club';
 
-export const PLANETS: Planet[] = [
+/* ---------------------------------------------------------------------------
+   Fallback content.
+
+   Boards, planets and members now live in Supabase and are edited from the
+   admin (Admin → Boards / Planets). This copy is only used when those tables
+   don't exist yet — before db/boards-and-planets.sql has been run — so the
+   public site never renders empty. It mirrors that file's seed data.
+--------------------------------------------------------------------------- */
+
+const P = (
+  position: number,
+  slug: string,
+  name: string,
+  icon: string,
+  description: string,
+  responsibilities: string[]
+): ClubPlanet => ({ id: `fallback-${slug}`, slug, name, description, icon_url: icon, responsibilities, position });
+
+export const FALLBACK_PLANETS: ClubPlanet[] = [
+  P(1, 'education', 'Planet of Education', '/images/planet_of_education.png',
+    'Fostering knowledge and learning through workshops, seminars, and educational programs.',
+    ['Organize astronomy workshops and seminars', 'Conduct training sessions for members', 'Develop educational content and resources', 'Coordinate with academic institutions']),
+  P(2, 'research', 'Planet of Research', '/images/planet_of_research.png',
+    'Advancing astronomical research and fostering scientific curiosity among members.',
+    ['Conduct astronomical research projects', 'Collaborate with research institutions', 'Publish research findings', 'Mentor students in research methodologies']),
+  P(3, 'media-marketing', 'Planet of Media & Marketing', '/images/planet_of_media.png',
+    'Managing club communications, social media presence, and promotional activities.',
+    ['Manage social media accounts', 'Create promotional content', 'Design marketing materials', 'Handle public relations']),
+  P(4, 'management-finance', 'Planet of Management & Finance', '/images/planet_of_management.png',
+    'Overseeing financial operations, budgeting, and administrative management.',
+    ['Manage club finances and budgets', 'Handle administrative tasks', 'Coordinate resource allocation', 'Maintain financial records']),
+  P(5, 'observation', 'Planet of Observation', '/images/planet_of_observation.png',
+    'Organizing stargazing sessions, telescope operations, and observational activities.',
+    ['Organize stargazing events', 'Maintain and operate telescopes', 'Plan observation sessions', 'Document celestial observations']),
+  P(6, 'organizing', 'Planet of Organizing', '/images/planet_of_organizing.png',
+    'Planning and executing club events, trips, and various activities.',
+    ['Plan and execute club events', 'Organize astronomy trips', 'Coordinate logistics for activities', 'Manage event registrations']),
+];
+
+const img = (board: string, position: number, url: string, title: string, caption: string) => ({
+  id: `fallback-${board}-${position}`,
+  board_id: `fallback-${board}`,
+  url,
+  title,
+  caption,
+  position,
+});
+
+export const FALLBACK_BOARDS: ClubBoard[] = [
   {
-    id: '1',
-    name: 'Planet of Education',
-    slug: 'education',
-    description: 'Fostering knowledge and learning through workshops, seminars, and educational programs.',
-    icon: '/images/planet_of_education.png',
-    director: {
-      id: 'd1',
-      name: 'Chamudi Kaushika',
-      role: 'director',
-      image: '/images/education_planet/chamudi.jpg',
-      email: 'education.director@usjastro.lk',
-      bio: 'Leading the educational initiatives of the astronomy club.',
-    },
-    managers: [
-      {
-        id: 'm1',
-        name: 'Pathmanadan Thashmidha',
-        role: 'manager',
-        image: '/images/education_planet/pathmanadan.jpg',
-        email: 'manager1.education@usjastro.lk',
-      },
-      {
-        id: 'm2',
-        name: 'Paboda Kaumadi',
-        role: 'manager',
-        image: '/images/education_planet/paboda.jpg',
-        email: 'manager2.education@usjastro.lk',
-      },
-      {
-        id: 'm3',
-        name: 'Nethmi Chamathka',
-        role: 'manager',
-        image: '/images/education_planet/nethmi.jpeg',
-        email: 'manager3.education@usjastro.lk',
-      },
-    ],
-    responsibilities: [
-      'Organize astronomy workshops and seminars',
-      'Conduct training sessions for members',
-      'Develop educational content and resources',
-      'Coordinate with academic institutions',
+    id: 'fallback-2025',
+    year: '2025/26',
+    note: 'The current board. Elected at the annual general meeting and running the club through to the next.',
+    is_current: true,
+    is_published: true,
+    images: [
+      img('2025', 1, '/images/top_board.jpg', 'Top Board', 'President, secretary and treasurer'),
+      img('2025', 2, '/images/board.jpg', 'Executive Board', 'Directors and managers of all six planets'),
     ],
   },
   {
-    id: '2',
-    name: 'Planet of Research',
-    slug: 'research',
-    description: 'Advancing astronomical research and fostering scientific curiosity among members.',
-    icon: '/images/planet_of_research.png',
-    director: {
-      id: 'd2',
-      name: 'Raneesha Jayasena',
-      role: 'director',
-      image: '/images/research_planet/raneesha.jpg',
-      email: 'research.director@usjastro.lk',
-      bio: 'Leading research initiatives and projects.',
-    },
-    managers: [
-      {
-        id: 'm4',
-        name: 'Thilini Maduwanthi',
-        role: 'manager',
-        image: '/images/research_planet/thilini.jpg',
-        email: 'manager1.research@usjastro.lk',
-      },
-      {
-        id: 'm5',
-        name: 'Vishwa Sasintha',
-        role: 'manager',
-        image: '/images/research_planet/vishwa.jpg',
-        email: 'manager2.research@usjastro.lk',
-      },
-      {
-        id: 'm6',
-        name: 'Chirath Chamuditha',
-        role: 'manager',
-        image: '/images/research_planet/chirath.png',
-        email: 'manager3.research@usjastro.lk',
-      },
-    ],
-    responsibilities: [
-      'Conduct astronomical research projects',
-      'Collaborate with research institutions',
-      'Publish research findings',
-      'Mentor students in research methodologies',
+    id: 'fallback-2024',
+    year: '2024/25',
+    note: 'The board that took the club through its busiest observation season to date.',
+    is_current: false,
+    is_published: true,
+    images: [
+      img('2024', 1, '/images/boards/2024_top_board.jpg', 'Top Board', 'President, secretary and treasurer'),
+      img('2024', 2, '/images/boards/2024_board.jpg', 'Executive Board', 'Directors and managers of all six planets'),
     ],
   },
-  {
-    id: '3',
-    name: 'Planet of Media & Marketing',
-    slug: 'media-marketing',
-    description: 'Managing club communications, social media presence, and promotional activities.',
-    icon: '/images/planet_of_media.png',
-    director: {
-      id: 'd3',
-      name: 'Sahan Perera',
-      role: 'director',
-      image: '/images/team/media-director.jpg',
-      email: 'media.director@usjastro.lk',
-      bio: 'Managing media relations and marketing strategies.',
-    },
-    managers: [
-      {
-        id: 'm7',
-        name: 'Nethmi Bhayogya',
-        role: 'manager',
-        image: '/images/team/media-manager-1.jpg',
-        email: 'manager1.media@usjastro.lk',
-      },
-      {
-        id: 'm8',
-        name: 'Chalusha ',
-        role: 'manager',
-        image: '/images/team/media-manager-2.jpg',
-        email: 'manager2.media@usjastro.lk',
-      },
-      {
-        id: 'm9',
-        name: 'Manager 3',
-        role: 'manager',
-        image: '/images/team/media-manager-3.jpg',
-        email: 'manager3.media@usjastro.lk',
-      },
-      {
-        id: 'm10',
-        name: 'Manager 4',
-        role: 'manager',
-        image: '/images/team/media-manager-4.jpg',
-        email: 'manager4.media@usjastro.lk',
-      }
-    ],
-    responsibilities: [
-      'Manage social media accounts',
-      'Create promotional content',
-      'Design marketing materials',
-      'Handle public relations',
-    ],
-  },
-  {
-    id: '4',
-    name: 'Planet of Management & Finance',
-    slug: 'management-finance',
-    description: 'Overseeing financial operations, budgeting, and administrative management.',
-    icon: '/images/planet_of_management.png',
-    director: {
-      id: 'd4',
-      name: 'Director Name',
-      role: 'director',
-      image: '/images/team/management-director.jpg',
-      email: 'management.director@usjastro.lk',
-      bio: 'Overseeing financial and administrative operations.',
-    },
-    managers: [
-      {
-        id: 'm10',
-        name: 'Manager 1',
-        role: 'manager',
-        image: '/images/team/management-manager-1.jpg',
-        email: 'manager1.management@usjastro.lk',
-      },
-      {
-        id: 'm11',
-        name: 'Manager 2',
-        role: 'manager',
-        image: '/images/team/management-manager-2.jpg',
-        email: 'manager2.management@usjastro.lk',
-      },
-      {
-        id: 'm12',
-        name: 'Manager 3',
-        role: 'manager',
-        image: '/images/team/management-manager-3.jpg',
-        email: 'manager3.management@usjastro.lk',
-      },
-    ],
-    responsibilities: [
-      'Manage club finances and budgets',
-      'Handle administrative tasks',
-      'Coordinate resource allocation',
-      'Maintain financial records',
-    ],
-  },
-  {
-    id: '5',
-    name: 'Planet of Observation',
-    slug: 'observation',
-    description: 'Organizing stargazing sessions, telescope operations, and observational activities.',
-    icon: '/images/planet_of_observation.png',
-    director: {
-      id: 'd5',
-      name: 'Director Name',
-      role: 'director',
-      image: '/images/team/observation-director.jpg',
-      email: 'observation.director@usjastro.lk',
-      bio: 'Leading observational activities and stargazing sessions.',
-    },
-    managers: [
-      {
-        id: 'm13',
-        name: 'Manager 1',
-        role: 'manager',
-        image: '/images/team/observation-manager-1.jpg',
-        email: 'manager1.observation@usjastro.lk',
-      },
-      {
-        id: 'm14',
-        name: 'Manager 2',
-        role: 'manager',
-        image: '/images/team/observation-manager-2.jpg',
-        email: 'manager2.observation@usjastro.lk',
-      },
-      {
-        id: 'm15',
-        name: 'Manager 3',
-        role: 'manager',
-        image: '/images/team/observation-manager-3.jpg',
-        email: 'manager3.observation@usjastro.lk',
-      },
-    ],
-    responsibilities: [
-      'Organize stargazing events',
-      'Maintain and operate telescopes',
-      'Plan observation sessions',
-      'Document celestial observations',
-    ],
-  },
-  {
-    id: '6',
-    name: 'Planet of Organizing',
-    slug: 'organizing',
-    description: 'Planning and executing club events, trips, and various activities.',
-    icon: '/images/planet_of_organizing.png',
-    director: {
-      id: 'd6',
-      name: 'Director Name',
-      role: 'director',
-      image: '/images/team/organizing-director.jpg',
-      email: 'organizing.director@usjastro.lk',
-      bio: 'Coordinating events and organizational activities.',
-    },
-    managers: [
-      {
-        id: 'm16',
-        name: 'Manager 1',
-        role: 'manager',
-        image: '/images/team/organizing-manager-1.jpg',
-        email: 'manager1.organizing@usjastro.lk',
-      },
-      {
-        id: 'm17',
-        name: 'Manager 2',
-        role: 'manager',
-        image: '/images/team/organizing-manager-2.jpg',
-        email: 'manager2.organizing@usjastro.lk',
-      },
-      {
-        id: 'm18',
-        name: 'Manager 3',
-        role: 'manager',
-        image: '/images/team/organizing-manager-3.jpg',
-        email: 'manager3.organizing@usjastro.lk',
-      },
-    ],
-    responsibilities: [
-      'Plan and execute club events',
-      'Organize astronomy trips',
-      'Coordinate logistics for activities',
-      'Manage event registrations',
-    ],
-  },
+];
+
+const M = (
+  slug: string,
+  role: ClubMember['role'],
+  position: number,
+  name: string,
+  image_url: string,
+  email: string,
+  bio = ''
+): ClubMember => ({
+  id: `fallback-${slug}-${role}-${position}`,
+  board_id: 'fallback-2025',
+  planet_id: `fallback-${slug}`,
+  role,
+  name,
+  image_url,
+  email,
+  phone: '',
+  linkedin: '',
+  bio,
+  position,
+});
+
+export const FALLBACK_MEMBERS: ClubMember[] = [
+  M('education', 'director', 1, 'Chamudi Kaushika', '/images/education_planet/chamudi.jpg', 'education.director@usjastro.lk', 'Leading the educational initiatives of the astronomy club.'),
+  M('education', 'manager', 1, 'Pathmanadan Thashmidha', '/images/education_planet/pathmanadan.jpg', 'manager1.education@usjastro.lk'),
+  M('education', 'manager', 2, 'Paboda Kaumadi', '/images/education_planet/paboda.jpg', 'manager2.education@usjastro.lk'),
+  M('education', 'manager', 3, 'Nethmi Chamathka', '/images/education_planet/nethmi.jpeg', 'manager3.education@usjastro.lk'),
+  M('research', 'director', 1, 'Raneesha Jayasena', '/images/research_planet/raneesha.jpg', 'research.director@usjastro.lk', 'Leading research initiatives and projects.'),
+  M('research', 'manager', 1, 'Thilini Maduwanthi', '/images/research_planet/thilini.jpg', 'manager1.research@usjastro.lk'),
+  M('research', 'manager', 2, 'Vishwa Sasintha', '/images/research_planet/vishwa.jpg', 'manager2.research@usjastro.lk'),
+  M('research', 'manager', 3, 'Chirath Chamuditha', '/images/research_planet/chirath.png', 'manager3.research@usjastro.lk'),
+  M('media-marketing', 'director', 1, 'Sahan Perera', '', 'media.director@usjastro.lk', 'Managing media relations and marketing strategies.'),
+  M('media-marketing', 'manager', 1, 'Nethmi Bhayogya', '', 'manager1.media@usjastro.lk'),
+  M('media-marketing', 'manager', 2, 'Chalusha', '', 'manager2.media@usjastro.lk'),
 ];

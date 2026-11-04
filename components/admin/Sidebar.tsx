@@ -4,7 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
-import { LayoutDashboard, Calendar, Images, BookOpen, LogOut, ExternalLink } from 'lucide-react';
+import { LayoutDashboard, Calendar, Images, BookOpen, Users, Orbit, LogOut, ExternalLink } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const NAV = [
@@ -12,6 +12,8 @@ const NAV = [
   { name: 'Events', href: '/admin/events', icon: Calendar },
   { name: 'Gallery', href: '/admin/gallery', icon: Images },
   { name: 'Magazine', href: '/admin/magazine', icon: BookOpen },
+  { name: 'Boards', href: '/admin/boards', icon: Users },
+  { name: 'Planets', href: '/admin/planets', icon: Orbit },
 ];
 
 export function Sidebar() {
