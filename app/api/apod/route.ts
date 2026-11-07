@@ -1,54 +1,75 @@
 import { NextResponse } from 'next/server';
+import { unstable_cache } from 'next/cache';
+import { loadApod, type Apod } from '@/lib/apod';
 
 /* ---------------------------------------------------------------------------
-   NASA's Astronomy Picture of the Day.
+   NASA's Astronomy Picture of the Day, kept on screen even when NASA isn't.
 
-   DEMO_KEY works but is rate-limited to roughly 30 requests an hour per IP,
-   which a public site will exhaust. Get a free key in about thirty seconds at
-   https://api.nasa.gov and put it in .env.local as NASA_API_KEY — no other
-   change is needed. The route caches for an hour either way, so even DEMO_KEY
-   survives light traffic.
+   Set NASA_API_KEY in the hosting provider's environment variables (e.g.
+   Vercel → Project → Settings → Environment Variables), not only in
+   .env.local, which is never deployed. Free key: https://api.nasa.gov.
+   Without one we fall back to DEMO_KEY, and when the API refuses we read the
+   APOD page itself instead (see lib/apod.ts), so a key is a nicety rather
+   than a requirement.
+
+   Caching, and why it is done this way rather than `export const revalidate`:
+
+   - A route with `revalidate` caches whatever it returns, error responses
+     included — one bad hour of NASA replaced the picture with a 502 for an
+     hour, and a failure at build time left the route uncached, so every
+     visit hit NASA again and kept the rate limit exhausted.
+   - `unstable_cache` stores only successful results (loadApod throws on
+     failure), and when a refresh fails it keeps serving the last good entry.
+     So once one day has loaded, the section never empties; it is at worst an
+     hour or so behind.
+   - Failures are remembered for a few minutes so a bad spell doesn't turn
+     every page view into another request to NASA.
 --------------------------------------------------------------------------- */
 
-export const revalidate = 3600;
+const REFRESH_SECONDS = 60 * 60;
+const FAILURE_BACKOFF_MS = 5 * 60 * 1000;
+
+// Per server instance: the last entry we served, and when we may next ask NASA.
+let lastGood: Apod | null = null;
+let retryAt = 0;
+
+const getApod = unstable_cache(
+  async () => {
+    // Also throttles the background refreshes of a stale entry.
+    if (Date.now() < retryAt) throw new Error('backing off after a recent failure');
+    try {
+      return await loadApod(process.env.NASA_API_KEY || 'DEMO_KEY');
+    } catch (e) {
+      retryAt = Date.now() + FAILURE_BACKOFF_MS;
+      console.warn(`[apod] both sources failed: ${e instanceof Error ? e.message : e}`);
+      throw e;
+    }
+  },
+  ['nasa-apod', 'v2'],
+  { revalidate: REFRESH_SECONDS, tags: ['nasa-apod'] }
+);
+
+function ok(apod: Apod, maxAge: number) {
+  return NextResponse.json(apod, {
+    headers: {
+      'Cache-Control': `public, s-maxage=${maxAge}, stale-while-revalidate=86400`,
+    },
+  });
+}
+
+function unavailable(message: string) {
+  return NextResponse.json(
+    { message },
+    { status: 502, headers: { 'Cache-Control': 'public, s-maxage=300' } }
+  );
+}
 
 export async function GET() {
-  const key = process.env.NASA_API_KEY || 'DEMO_KEY';
   try {
-    const r = await fetch(
-      `https://api.nasa.gov/planetary/apod?api_key=${key}&thumbs=true`,
-      { next: { revalidate: 3600 } }
-    );
-    if (!r.ok) {
-      return NextResponse.json(
-        {
-          message:
-            r.status === 429
-              ? 'NASA rate limit reached — add a free NASA_API_KEY to .env.local'
-              : 'Picture of the day unavailable',
-        },
-        { status: 502 }
-      );
-    }
-    const j = await r.json();
-
-    /* APOD serves stills and videos; for a video the thumbnail is the image.
-       `url` is the ~1200px web version and `hdurl` is the original, which can
-       be a 5000px multi-megabyte JPEG — display the former, link the latter. */
-    const image =
-      j.media_type === 'image' ? j.url : j.thumbnail_url || null;
-
-    return NextResponse.json({
-      title: j.title as string,
-      date: j.date as string,
-      explanation: j.explanation as string,
-      copyright: (j.copyright as string | undefined)?.trim() || null,
-      mediaType: j.media_type as string,
-      image,
-      link: j.media_type === 'image' ? j.hdurl || j.url : j.url,
-      usingDemoKey: key === 'DEMO_KEY',
-    });
+    const apod = await getApod();
+    lastGood = apod;
+    return ok(apod, 30 * 60);
   } catch {
-    return NextResponse.json({ message: 'Picture of the day unavailable' }, { status: 502 });
+    return lastGood ? ok(lastGood, 300) : unavailable('Picture of the day unavailable');
   }
 }

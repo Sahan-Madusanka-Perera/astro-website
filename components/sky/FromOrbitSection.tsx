@@ -1,11 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ArrowUpRight } from 'lucide-react';
 import { Section, Shell, SectionHead } from '@/components/layout/Section';
 import { Reveal } from '@/components/motion/Reveal';
 import { Rocket } from './Rocket';
 import { SITE } from '@/lib/site-location';
+import type { Apod } from '@/lib/apod';
 
 /* ---------------------------------------------------------------------------
    The wider sky, on a day's delay.
@@ -17,17 +18,6 @@ import { SITE } from '@/lib/site-location';
    Both degrade to nothing: a section that can't fill itself is not shown.
 --------------------------------------------------------------------------- */
 
-type Apod = {
-  title: string;
-  date: string;
-  explanation: string;
-  copyright: string | null;
-  mediaType: string;
-  image: string | null;
-  link: string;
-  usingDemoKey: boolean;
-};
-
 type Launch = {
   id: string;
   vehicle: string;
@@ -38,27 +28,88 @@ type Launch = {
   location: string | null;
 };
 
-function ApodFrame({ src, alt }: { src: string; alt: string }) {
+const mediaClass =
+  'absolute inset-0 h-full w-full object-cover opacity-[0.94] transition-[transform,opacity] duration-[1100ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.02] group-hover:opacity-100';
+
+/** Shown when there is nothing to display inline, or the media won't load. */
+function ApodPlaceholder({ mediaType }: { mediaType: Apod['mediaType'] }) {
+  return (
+    <span className="grid aspect-[3/2] w-full place-items-center gap-2 bg-white/[0.035] text-center">
+      <span>
+        <span className="label-chart block">
+          {mediaType === 'video'
+            ? 'Today\u2019s entry is a video'
+            : mediaType === 'other'
+              ? 'Today\u2019s entry is interactive'
+              : 'Today\u2019s picture'}
+        </span>
+        <span className="note mt-2 inline-flex items-center gap-1">
+          {mediaType === 'video' ? 'Watch it' : 'See it'} on NASA&apos;s site
+          <ArrowUpRight className="h-3.5 w-3.5" />
+        </span>
+      </span>
+    </span>
+  );
+}
+
+/* APOD frames vary wildly in shape; reserve 3:2 and let the real ratio take
+   over once it decodes, the same way the gallery does. */
+function ApodFrame({ apod }: { apod: Apod }) {
   const [ratio, setRatio] = useState<number | null>(null);
+  const [broken, setBroken] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  // Self-hosted APOD videos play muted and looped, unless motion is reduced.
+  useEffect(() => {
+    const v = videoRef.current;
+    if (!v) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    v.play().catch(() => {});
+  }, [apod.video]);
+
+  if (broken || (!apod.video && !apod.image)) {
+    return <ApodPlaceholder mediaType={apod.mediaType} />;
+  }
+
   return (
     <span
       className="relative block w-full overflow-hidden bg-white/[0.035]"
       style={{ aspectRatio: ratio ?? 3 / 2 }}
     >
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={src}
-        alt={alt}
-        loading="lazy"
-        decoding="async"
-        onLoad={(e) => {
-          const el = e.currentTarget;
-          if (el.naturalWidth && el.naturalHeight) {
-            setRatio(el.naturalWidth / el.naturalHeight);
-          }
-        }}
-        className="absolute inset-0 h-full w-full object-cover opacity-[0.94] transition-[transform,opacity] duration-[1100ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.02] group-hover:opacity-100"
-      />
+      {apod.video ? (
+        <video
+          ref={videoRef}
+          src={apod.video}
+          poster={apod.image ?? undefined}
+          muted
+          loop
+          playsInline
+          preload="metadata"
+          aria-label={apod.title}
+          onLoadedMetadata={(e) => {
+            const el = e.currentTarget;
+            if (el.videoWidth && el.videoHeight) setRatio(el.videoWidth / el.videoHeight);
+          }}
+          onError={() => setBroken(true)}
+          className={mediaClass}
+        />
+      ) : (
+        /* eslint-disable-next-line @next/next/no-img-element */
+        <img
+          src={apod.image!}
+          alt={apod.title}
+          loading="lazy"
+          decoding="async"
+          onLoad={(e) => {
+            const el = e.currentTarget;
+            if (el.naturalWidth && el.naturalHeight) {
+              setRatio(el.naturalWidth / el.naturalHeight);
+            }
+          }}
+          onError={() => setBroken(true)}
+          className={mediaClass}
+        />
+      )}
     </span>
   );
 }
@@ -69,9 +120,17 @@ function useFeed<T>(url: string) {
   useEffect(() => {
     let alive = true;
     fetch(url)
-      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then(async (r) => {
+        if (r.ok) return r.json();
+        const body = await r.json().catch(() => null);
+        throw new Error(body?.message ?? `${url} responded ${r.status}`);
+      })
       .then((d) => alive && setData(d))
-      .catch(() => alive && setFailed(true));
+      .catch((e) => {
+        // The section hides itself quietly; say why in the console at least.
+        console.warn(`[sky] ${url}:`, e instanceof Error ? e.message : e);
+        if (alive) setFailed(true);
+      });
     return () => {
       alive = false;
     };
@@ -126,16 +185,7 @@ export function FromOrbitSection() {
                     rel="noopener noreferrer"
                     className="group block overflow-hidden rounded-sm ring-1 ring-white/[0.07] transition-[box-shadow,ring-color] duration-700 hover:ring-azure-lit/45"
                   >
-                    {apod.image ? (
-                      /* APOD frames vary wildly in shape; reserve 3:2 and let
-                         the real ratio take over once it decodes, the same way
-                         the gallery does. */
-                      <ApodFrame src={apod.image} alt={apod.title} />
-                    ) : (
-                      <div className="grid aspect-[3/2] place-items-center bg-white/[0.035]">
-                        <span className="label-chart">Today&apos;s entry is a video</span>
-                      </div>
-                    )}
+                    <ApodFrame apod={apod} />
                   </a>
 
                   <figcaption className="mt-5 border-t border-rule pt-4">
@@ -159,7 +209,9 @@ export function FromOrbitSection() {
                       {apod.explanation}
                     </p>
                     {apod.copyright && (
-                      <p className="note mt-3">Image: {apod.copyright}</p>
+                      <p className="note mt-3">
+                        {apod.mediaType === 'image' ? 'Image' : 'Credit'}: {apod.copyright}
+                      </p>
                     )}
                   </figcaption>
                 </figure>
