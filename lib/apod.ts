@@ -1,13 +1,18 @@
 /* ---------------------------------------------------------------------------
    NASA's Astronomy Picture of the Day, from two independent sources.
 
-   1. The APOD API (api.nasa.gov). Clean JSON, but rate-limited per key — and
-      DEMO_KEY is limited per *IP*, which on shared serverless hosts is shared
-      with every other site using it, so it is often exhausted before we ask.
-   2. The APOD page itself (apod.nasa.gov/apod/astropix.html). A static HTML
-      page whose layout has barely changed since 1995, with no key and no rate
-      limit. Used whenever the API fails, including the hours after NASA's day
-      rolls over when the API has no entry for "today" yet.
+   In late 2026 APOD moved to NASA Science: every apod.nasa.gov address —
+   astropix.html, the dated pages, even the image files — now redirects to
+   https://science.nasa.gov/apod/, and pictures are served from
+   assets.science.nasa.gov. Since the move the API's `url`/`hdurl` point at the
+   NASA logo, and asking it for a past date returns today's text. So:
+
+   1. The APOD page on NASA Science (science.nasa.gov/apod/) is read first. No
+      key, no rate limit, and it is the source of truth now. The original
+      apod.nasa.gov layout is still understood, should that page ever return.
+   2. The APOD API (api.nasa.gov) is the fallback. It is rate-limited per key,
+      and DEMO_KEY per *IP* (shared with every other site on a serverless
+      host), and its images are ignored when they are NASA's logo.
 
    Nothing here touches Next.js caching; the route decides how long to keep a
    result. Every function throws on failure so a cache never stores a bad day.
@@ -32,6 +37,7 @@ export type Apod = {
 };
 
 const APOD_BASE = 'https://apod.nasa.gov/apod/';
+export const SCIENCE_APOD = 'https://science.nasa.gov/apod/';
 const MONTHS = [
   'january', 'february', 'march', 'april', 'may', 'june',
   'july', 'august', 'september', 'october', 'november', 'december',
@@ -51,10 +57,27 @@ export function absoluteUrl(u: string | null | undefined, base = APOD_BASE): str
   }
 }
 
-/** The APOD page for a given date, e.g. ap261107.html. */
-export function pageUrlFor(date: string) {
-  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(date);
-  return m ? `${APOD_BASE}ap${m[1].slice(2)}${m[2]}${m[3]}.html` : `${APOD_BASE}astropix.html`;
+/** Where to send a reader for a given day. The dated apod.nasa.gov pages all
+ *  redirect to the APOD front page now, so that is where they go. */
+export function pageUrlFor(_date: string) {
+  return SCIENCE_APOD;
+}
+
+/** NASA Science's chrome (its logo, theme assets) — never a picture of the day. */
+export function isPlaceholderImage(u: string | null | undefined) {
+  return !!u && /nasa-logo|\/wp-content\/themes\//i.test(u);
+}
+
+/** NASA Science resizes on request: cap pictures at 1600px on the long side. */
+export function sizedScienceImage(u: string) {
+  try {
+    const url = new URL(u);
+    if (url.hostname !== 'assets.science.nasa.gov' || !url.pathname.startsWith('/dynamicimage/')) return u;
+    url.search = '?w=1600&h=1600&fit=clip';
+    return url.toString();
+  } catch {
+    return u;
+  }
 }
 
 const isVideoFile = (u: string) => /\.(mp4|webm|mov|m4v)(\?|#|$)/i.test(u);
@@ -115,7 +138,16 @@ export function fromApi(j: ApiEntry): Apod {
   if (!j || !j.title || !j.date || !/^\d{4}-\d{2}-\d{2}$/.test(j.date)) {
     throw new Error('APOD API returned an incomplete entry');
   }
-  const url = absoluteUrl(j.url);
+  // Since the move the API sometimes describes NASA Science itself — its name
+  // as the title and its logo as the picture. Nothing in that is today's entry.
+  if (/^(apod\s*[-–—]\s*)?nasa science$/i.test(j.title.trim())) {
+    throw new Error('APOD API returned NASA Science placeholders instead of an entry');
+  }
+  const rawUrl = absoluteUrl(j.url);
+  // Since the move to NASA Science the API hands back the site logo here.
+  const url = isPlaceholderImage(rawUrl) ? null : rawUrl;
+  const hd = isPlaceholderImage(j.hdurl) ? null : absoluteUrl(j.hdurl);
+  const thumb = isPlaceholderImage(j.thumbnail_url) ? null : absoluteUrl(j.thumbnail_url);
   const page = pageUrlFor(j.date);
   const base = {
     title: j.title.trim(),
@@ -128,7 +160,7 @@ export function fromApi(j: ApiEntry): Apod {
   if (j.media_type === 'image' && url) {
     /* `url` is the ~1200px web version and `hdurl` the original, which can be
        a 5000px multi-megabyte JPEG — display the former, link the latter. */
-    return { ...base, mediaType: 'image', image: url, video: null, link: absoluteUrl(j.hdurl) ?? url };
+    return { ...base, mediaType: 'image', image: url, video: null, link: hd ?? url };
   }
 
   if (j.media_type === 'video' && url) {
@@ -136,7 +168,7 @@ export function fromApi(j: ApiEntry): Apod {
     return {
       ...base,
       mediaType: 'video',
-      image: absoluteUrl(j.thumbnail_url) ?? youtubeThumb(url),
+      image: thumb ?? youtubeThumb(url),
       video: file ? url : null,
       link: page,
     };
@@ -145,7 +177,7 @@ export function fromApi(j: ApiEntry): Apod {
   return {
     ...base,
     mediaType: 'other',
-    image: absoluteUrl(j.thumbnail_url),
+    image: thumb,
     video: null,
     link: page,
   };
@@ -266,25 +298,97 @@ export function parseApodPage(html: string, pageUrl = `${APOD_BASE}astropix.html
   };
 }
 
+/* ── source 1b: the NASA Science page ──────────────────────────────────── */
+
+const metaRow = (html: string, label: RegExp) => {
+  for (const m of html.matchAll(/media-detail-hero__meta-row"[^>]*>\s*<th[^>]*>([\s\S]*?)<\/th>\s*<td[^>]*>([\s\S]*?)<\/td>/gi)) {
+    if (label.test(textOf(m[1]))) return textOf(m[2]);
+  }
+  return null;
+};
+
+function parseLongDate(text: string | null): string | null {
+  const m = /(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{1,2}),?\s+(\d{4})/i.exec(text ?? '');
+  if (!m) return null;
+  const month = MONTHS.indexOf(m[1].toLowerCase()) + 1;
+  return `${m[3]}-${String(month).padStart(2, '0')}-${m[2].padStart(2, '0')}`;
+}
+
+/** Today's entry from https://science.nasa.gov/apod/ (the layout since late 2026). */
+export function parseSciencePage(html: string, pageUrl = SCIENCE_APOD): Apod {
+  // The class name also appears in the page's stylesheets; find the element.
+  const heroAt = html.search(/class="[^"]*\bmedia-detail-hero__media\b/);
+  if (heroAt < 0) throw new Error('NASA Science APOD page: no picture block found');
+  const titleMatch = /<h2\b[^>]*>([\s\S]*?)<\/h2>/i.exec(html.slice(heroAt));
+  if (!titleMatch) throw new Error('NASA Science APOD page: no title found');
+  const hero = html.slice(heroAt, heroAt + titleMatch.index);
+  const title = textOf(titleMatch[1]);
+  if (!title) throw new Error('NASA Science APOD page: empty title');
+  const after = html.slice(heroAt + titleMatch.index);
+
+  const slug = /apod-(\d{4})-([a-z]+)-(\d{1,2})-/i.exec(hero);
+  const date =
+    parseLongDate(metaRow(after, /^date/i)) ??
+    (slug ? parseLongDate(`${slug[2]} ${slug[3]}, ${slug[1]}`) : null);
+  if (!date) throw new Error('NASA Science APOD page: no date found');
+
+  const article = /<a\b[^>]*\bhref\s*=\s*"([^"]+)"/i.exec(hero)?.[1];
+  const link = absoluteUrl(article, pageUrl) ?? SCIENCE_APOD;
+
+  let mediaType: ApodMedia = 'other';
+  let image: string | null = null;
+  let videoFile: string | null = null;
+  const video = /<video\b[\s\S]*?<\/video>/i.exec(hero);
+  const iframe = /<iframe\b[^>]*>/i.exec(hero);
+  const img = /<img\b[^>]*>/i.exec(hero);
+  if (video) {
+    const src = absoluteUrl(srcIn(video[0]) ?? /<source\b[^>]*\bsrc\s*=\s*"([^"]+)"/i.exec(video[0])?.[1], pageUrl);
+    mediaType = 'video';
+    videoFile = src && isVideoFile(src) ? src : null;
+    image = absoluteUrl(/\bposter\s*=\s*"([^"]+)"/i.exec(video[0])?.[1], pageUrl);
+  } else if (iframe) {
+    const src = absoluteUrl(srcIn(iframe[0]), pageUrl) ?? '';
+    mediaType = /youtube|youtu\.be|vimeo/i.test(src) ? 'video' : 'other';
+    image = youtubeThumb(src);
+  } else if (img) {
+    const src = absoluteUrl(srcIn(img[0]), pageUrl);
+    if (src && !isPlaceholderImage(src)) {
+      mediaType = 'image';
+      image = sizedScienceImage(src);
+    }
+  }
+
+  const expl = /<strong>\s*Explanation\s*:?\s*<\/strong>([\s\S]*?)<\/p>/i.exec(after);
+  const explanation = expl ? textOf(expl[1]) : '';
+  const copyright = metaRow(after, /credit/i) || null;
+
+  return { title, date, explanation, copyright, mediaType, image, video: videoFile, link, source: 'page' };
+}
+
+/** Reads whichever page layout NASA is serving. */
+export function parseAnyApodPage(html: string, pageUrl: string): Apod {
+  return /class="[^"]*\bmedia-detail-hero__media\b/.test(html) ? parseSciencePage(html, pageUrl) : parseApodPage(html, pageUrl);
+}
+
 export async function fetchFromPage(timeoutMs = 8000): Promise<Apod> {
-  const url = `${APOD_BASE}astropix.html`;
-  const r = await get(url, timeoutMs);
+  const r = await get(SCIENCE_APOD, timeoutMs);
   if (!r.ok) throw new Error(`APOD page responded ${r.status}`);
-  return parseApodPage(await r.text(), url);
+  return parseAnyApodPage(await r.text(), r.url || SCIENCE_APOD);
 }
 
 /* ── both ──────────────────────────────────────────────────────────────── */
 
-/** Today's entry from whichever source answers. Throws only if both fail. */
+/** Today's entry from whichever source answers. Throws only if both fail.
+ *  The page comes first: since the move it is the reliable source (see top). */
 export async function loadApod(apiKey: string): Promise<Apod> {
   const problems: string[] = [];
   try {
-    return await fetchFromApi(apiKey);
+    return await fetchFromPage();
   } catch (e) {
     problems.push(e instanceof Error ? e.message : String(e));
   }
   try {
-    return await fetchFromPage();
+    return await fetchFromApi(apiKey);
   } catch (e) {
     problems.push(e instanceof Error ? e.message : String(e));
   }

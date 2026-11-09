@@ -8,33 +8,29 @@ import { LineReveal } from '@/components/motion/LineReveal';
 import { useScrollMotion } from '@/hooks/useScrollMotion';
 
 /* ---------------------------------------------------------------------------
-   What the club actually does.
+   What the club actually does — in the words of its constitution (4th
+   edition): the mission, and the work of the planets.
 
-   Set as a programme — hairline-ruled rows with a cadence column — rather than
-   four identical icon cards. The rows carry different weights of text, so the
-   block reads as a schedule instead of a grid.
+   Set as a programme of hairline-ruled rows rather than four identical icon
+   cards, so the block reads as a list of what happens, not a grid.
 --------------------------------------------------------------------------- */
 
 const PROGRAMME = [
   {
-    title: 'Observation nights',
-    body: 'Telescopes out on the roof, and out at dark-sky sites when the moon gets out of the way. Beginners get put on the eyepiece first.',
-    cadence: 'Monthly',
+    title: 'Observation',
+    body: 'Night camps and observation sessions under the sky — planned and run by the Planet of Observation.',
   },
   {
-    title: 'Workshops & seminars',
-    body: 'Astrophotography, orbital mechanics, stellar spectra, and how to actually collimate a Dobsonian without ruining your night.',
-    cadence: 'Each term',
+    title: 'Education & seminars',
+    body: 'Educational programmes and seminars that make astronomy accessible and engaging, including support for students preparing for important examinations.',
   },
   {
     title: 'Research',
-    body: 'Member-led projects with real write-ups. Variable star photometry, occultation timing, and whatever a member turns up curious about.',
-    cadence: 'Ongoing',
+    body: 'Research projects related to astronomy, organised by the Planet of Research, for members who want to go deeper.',
   },
   {
-    title: 'Field trips',
-    body: 'Out past the streetlights, and out to the observatories. The nights that turn a member into an astronomer.',
-    cadence: 'Twice yearly',
+    title: 'Outreach & charity',
+    body: 'Sharing astronomy with the university community and beyond through social media, and contributing through educational and charitable projects.',
   },
 ];
 
@@ -59,7 +55,7 @@ export function AboutSection() {
       <Shell>
         <SectionHead
           title={<>What we do<br />when it&apos;s dark.</>}
-          lede="We're the astronomy club of the University of Sri Jayewardenepura — students, mostly, plus anyone who turns up and stays. No experience is assumed and none is required."
+          lede="The J'pura Astronomy Club is a non-profit student organisation of the University of Sri Jayewardenepura. Our mission is to expand and share our knowledge of astronomy with the university community and beyond — to inspire curiosity, encourage a scientific mindset, and cultivate a passion for the cosmos."
         />
 
         <ul className="mt-16 md:mt-20">
@@ -73,11 +69,8 @@ export function AboutSection() {
               <h3 className="col-span-1 text-[1.375rem] font-medium leading-tight tracking-[-0.015em] text-starlight transition-colors duration-500 group-hover:text-azure-glow md:col-span-4 md:text-[1.5rem]">
                 {item.title}
               </h3>
-              <p className="col-span-1 max-w-[62ch] leading-[1.7] text-star-dim md:col-span-6">
+              <p className="col-span-1 max-w-[62ch] leading-[1.7] text-star-dim md:col-span-8">
                 {item.body}
-              </p>
-              <p className="label-chart col-span-1 md:col-span-2 md:text-right">
-                {item.cadence}
               </p>
             </Reveal>
           ))}
@@ -129,9 +122,9 @@ export function AboutSection() {
                 is already halfway in.
               </LineReveal>
               <p className="mt-6 max-w-[48ch] text-[1.0625rem] leading-[1.65] text-white/85">
-                Membership is open to every faculty, every year, and every level
-                of knowing what you&apos;re looking at. Bring nothing. We have
-                the telescopes.
+                Any student of the University of Sri Jayewardenepura who is
+                interested in astronomy can join, with a one-year membership
+                you renew each year. No experience needed — just curiosity.
               </p>
             </div>
 
