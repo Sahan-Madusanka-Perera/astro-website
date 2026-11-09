@@ -30,11 +30,22 @@ export function loadMotion(): Promise<Motion> {
     // measured and push everything below them down the page. Re-measure once
     // the page has stopped changing height, so scrubbed sequences stay tied
     // to where their sections actually are.
+    //
+    // …but never while the page is scrolling. refresh() notes the scroll
+    // position and puts the page back there afterwards, so a refresh landing
+    // in the middle of a smooth scroll (a nav link, the jump to the top of a
+    // new page) froze it part-way. Wait until the scroll has come to rest.
     let settle: ReturnType<typeof setTimeout> | undefined;
-    new ResizeObserver(() => {
+    let lastScroll = 0;
+    window.addEventListener('scroll', () => { lastScroll = performance.now(); }, { passive: true });
+    const refreshWhenStill = () => {
       clearTimeout(settle);
-      settle = setTimeout(() => ScrollTrigger.refresh(), 200);
-    }).observe(document.body);
+      settle = setTimeout(() => {
+        if (performance.now() - lastScroll < 180) refreshWhenStill();
+        else ScrollTrigger.refresh();
+      }, 200);
+    };
+    new ResizeObserver(refreshWhenStill).observe(document.body);
 
     return { gsap, ScrollTrigger, SplitText };
   });

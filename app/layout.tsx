@@ -52,6 +52,11 @@ export default function RootLayout({
     <html
       lang="en"
       className={`${archivo.variable} ${jetbrains.variable} scroll-smooth`}
+      /* Tells Next.js to switch smooth scrolling off while it moves between
+         pages. Without it the jump to the top of the new page animates, and
+         a ScrollTrigger refresh landing mid-animation left planet pages
+         opening part-way down. */
+      data-scroll-behavior="smooth"
     >
       <body>
         {/* The direction contract, emitted as a real HTML comment so it

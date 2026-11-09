@@ -99,6 +99,30 @@ export function Navbar() {
     };
   }, [open]);
 
+  /* Section links on the home page scroll themselves. Left to the router, a
+     second click on a section whose #hash is already in the address bar did
+     nothing at all — the URL hadn't changed — so after scrolling away by hand
+     the nav seemed to stop working. */
+  const goToSection = useCallback(
+    (e: React.MouseEvent<HTMLAnchorElement>, section: string | null, closeMenu = false) => {
+      if (!section || pathname !== '/' || e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+      const target = document.getElementById(section);
+      if (!target) return;
+      e.preventDefault();
+      const go = () => {
+        target.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' });
+        // Keep the address shareable without adding a history entry per click.
+        window.history.replaceState(window.history.state, '', `/#${section}`);
+      };
+      if (closeMenu) {
+        setOpen(false);
+        // Wait for the sheet to release the page's scroll lock first.
+        requestAnimationFrame(() => requestAnimationFrame(go));
+      } else go();
+    },
+    [pathname, reduced]
+  );
+
   /* Seven taps on the seal. */
   const tapSeal = useCallback(() => {
     seals.current += 1;
@@ -107,9 +131,9 @@ export function Navbar() {
     if (seals.current >= 7) {
       seals.current = 0;
       sky.bumpSeal();
-      toast('Seal of the club, 2017', {
+      toast('Seal of the club — “More Beyond”', {
         description:
-          'Drawn by Isuru Graphics. Telescope, ringed planet, crescent moon — and four stars for the four founding batches.',
+          'Designed by founding member Isuru P. Silva. The telescope and planetary arc form a “J”; the three stars are Vega, Deneb and Altair — the Summer Triangle.',
       });
     }
   }, []);
@@ -133,7 +157,11 @@ export function Navbar() {
           main.focus({ preventScroll: true });
           main.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' });
         }}
-        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-full focus:bg-azure focus:px-5 focus:py-2.5 focus:text-[0.875rem] focus:font-medium focus:text-white"
+        /* focus-visible, not focus: after every page change Next.js puts
+           focus on the first element of the new page — this link — and with
+           :focus it then sat on top of the logo for mouse and touch users.
+           Keyboard users still get it, which is who it is for. */
+        className="sr-only focus-visible:not-sr-only focus-visible:fixed focus-visible:left-4 focus-visible:top-4 focus-visible:z-[60] focus-visible:rounded-full focus-visible:bg-azure focus-visible:px-5 focus-visible:py-2.5 focus-visible:text-[0.875rem] focus-visible:font-medium focus-visible:text-white"
       >
         Skip to content
       </a>
@@ -179,6 +207,7 @@ export function Navbar() {
                 <Link
                   key={item.name}
                   href={item.href}
+                  onClick={(e) => goToSection(e, item.section)}
                   className={cn(
                     'relative rounded-full px-4 py-2 text-[0.875rem] transition-colors duration-400',
                     isActive
@@ -245,7 +274,10 @@ export function Navbar() {
                   >
                     <Link
                       href={item.href}
-                      onClick={() => setOpen(false)}
+                      onClick={(e) => {
+                        goToSection(e, item.section, true);
+                        setOpen(false);
+                      }}
                       className="block border-b border-rule py-5"
                     >
                       <span className="display text-[2rem] leading-none">

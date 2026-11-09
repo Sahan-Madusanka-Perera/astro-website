@@ -70,7 +70,7 @@ function MemberRow({
               <input id={fid('name')} className={inputClass} value={member.name} onChange={set('name')} autoFocus={!member.name} placeholder="e.g. Chamudi Kaushika" />
             </Field>
             <Field label="Email" htmlFor={fid('email')}>
-              <input id={fid('email')} type="email" className={inputClass} value={member.email} onChange={set('email')} placeholder="name@usjastro.lk" />
+              <input id={fid('email')} type="email" className={inputClass} value={member.email} onChange={set('email')} placeholder="name@gmail.com" />
             </Field>
             <Field label="Phone" htmlFor={fid('phone')} hint="Optional. Not shown on the public site.">
               <input id={fid('phone')} className={inputClass} value={member.phone} onChange={set('phone')} placeholder="+94 7X XXX XXXX" />

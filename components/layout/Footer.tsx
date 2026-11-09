@@ -111,10 +111,10 @@ export function Footer() {
               <div className="flex items-center gap-3">
                 <Mail className="h-4 w-4 shrink-0 text-azure-lit" strokeWidth={1.6} />
                 <a
-                  href="mailto:astronomy@sjp.ac.lk"
+                  href="mailto:astronomyclub.usjp@gmail.com"
                   className="text-[0.9375rem] text-star-dim underline decoration-star-ghost/60 transition-colors duration-400 hover:text-azure-glow hover:decoration-azure-lit"
                 >
-                  astronomy@sjp.ac.lk
+                  astronomyclub.usjp@gmail.com
                 </a>
               </div>
             </address>

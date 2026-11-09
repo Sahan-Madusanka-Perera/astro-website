@@ -45,7 +45,7 @@ const getApod = unstable_cache(
       throw e;
     }
   },
-  ['nasa-apod', 'v2'],
+  ['nasa-apod', 'v3'],
   { revalidate: REFRESH_SECONDS, tags: ['nasa-apod'] }
 );
 
