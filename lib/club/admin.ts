@@ -79,6 +79,31 @@ export function cleanMember(input: unknown, role: MemberRole, position: number, 
   };
 }
 
+export function cleanPerson(input: unknown, position: number, where: string) {
+  const m = (input ?? {}) as Record<string, unknown>;
+  const name = text(m.name, 120);
+  if (!name) throw new InputError(`Everyone in ${where} needs a name.`);
+  return {
+    id: typeof m.id === 'string' && UUID.test(m.id) ? m.id : null,
+    name,
+    title: text(m.title, 120),
+    team: text(m.team, 120),
+    subtitle: text(m.subtitle, 300),
+    image_url: imageUrl(m.image_url, `Photo of ${name}`),
+    email: email(m.email, `Email of ${name}`),
+    linkedin: link(m.linkedin, `LinkedIn of ${name}`),
+    position,
+  };
+}
+
+/** The levels a brand-new board starts with when there is no earlier one to copy. */
+export const DEFAULT_LEVELS = [
+  { title: 'Advisory Panel', kind: 'people' },
+  { title: 'Top Board', kind: 'people' },
+  { title: 'Planet Directors', kind: 'planet_directors' },
+  { title: 'Project Heads', kind: 'people' },
+] as const;
+
 /** Removes uploads from our bucket. Files shipped in /public are never touched. Never throws. */
 export async function removeImages(urls: Iterable<string>) {
   const prefix = publicPrefix();

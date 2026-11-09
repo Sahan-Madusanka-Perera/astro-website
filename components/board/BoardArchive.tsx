@@ -6,13 +6,15 @@ import Image from 'next/image';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { Reveal } from '@/components/motion/Reveal';
 import { Avatar } from '@/components/people/Avatar';
+import { BoardHierarchy } from './BoardHierarchy';
 import { shortPlanetName } from '@/lib/club/shared';
 import type { ClubBoard, ClubMember, ClubPlanet } from '@/types/club';
 import { cn } from '@/lib/utils';
 
 /* ---------------------------------------------------------------------------
-   The board archive: one tab per year, that year's photographs, and who ran
-   each planet. Everything here is edited in Admin → Boards.
+   The board archive: one tab per year. Recent years are shown as a hierarchy
+   of people, older ones as their group photographs; either way followed by
+   who ran each planet. Everything here is edited in Admin → Boards.
 --------------------------------------------------------------------------- */
 
 const EASE = [0.16, 1, 0.3, 1] as const;
@@ -115,7 +117,9 @@ export function BoardArchive({ boards, planets, members }: { boards: ClubBoard[]
         >
           {selected.note && <p className="max-w-[58ch] text-[1.0625rem] leading-[1.7] text-star-dim">{selected.note}</p>}
 
-          {selected.images.length > 0 && (
+          {selected.layout === 'hierarchy' ? (
+            <BoardHierarchy levels={selected.levels} boardId={selected.id} planets={planets} members={members} />
+          ) : selected.images.length > 0 && (
             <div className="mt-12 space-y-16 md:mt-16 md:space-y-20">
               {selected.images.map((img, i) => (
                 <Reveal key={img.id}>

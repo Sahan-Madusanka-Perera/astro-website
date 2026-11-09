@@ -8,9 +8,10 @@ import { toast } from 'sonner';
 import { Check, Field, inputClass } from '@/components/admin/form-fields';
 import { BoardPhotos, type DraftImage } from '@/components/admin/club/BoardPhotos';
 import { MemberList, type DraftMember } from '@/components/admin/club/MemberList';
+import { LevelsEditor, type DraftLevel } from '@/components/admin/club/LevelsEditor';
 import { UploadTracker, pillButton, primaryButton, useUploads } from '@/components/admin/club/ui';
 import { shortPlanetName } from '@/lib/club/shared';
-import type { ClubBoard, ClubMember, ClubPlanet } from '@/types/club';
+import type { BoardLayout, BoardLevel, ClubBoard, ClubMember, ClubPlanet } from '@/types/club';
 import { cn } from '@/lib/utils';
 
 interface Details {
@@ -18,6 +19,7 @@ interface Details {
   note: string;
   is_current: boolean;
   is_published: boolean;
+  layout: BoardLayout;
   images: DraftImage[];
 }
 interface Team {
@@ -37,6 +39,38 @@ const toDraft = (m: ClubMember): DraftMember => ({
 });
 
 const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
+
+const toDetails = (board: ClubBoard): Details => ({
+  year: board.year,
+  note: board.note,
+  is_current: board.is_current,
+  is_published: board.is_published,
+  layout: board.layout,
+  images: board.images.map(({ id, url, title, caption }) => ({ id, url, title, caption })),
+});
+
+const toLevels = (levels: BoardLevel[]): DraftLevel[] =>
+  levels.map((l) => ({
+    id: l.id,
+    title: l.title,
+    kind: l.kind,
+    people: l.people.map(({ id, name, title, team, subtitle, image_url, email, linkedin }) => ({
+      id,
+      name,
+      title,
+      team,
+      subtitle,
+      image_url,
+      email,
+      linkedin,
+    })),
+  }));
+
+interface Saved {
+  details: Details;
+  teams: Teams;
+  levels: DraftLevel[];
+}
 
 function Section({ title, lede, children }: { title: string; lede?: string; children: React.ReactNode }) {
   return (
@@ -87,17 +121,19 @@ function PlanetTeam({
   );
 }
 
-function Editor({ id, initial, planets }: { id: string; initial: { details: Details; teams: Teams }; planets: ClubPlanet[] }) {
+function Editor({ id, initial, planets }: { id: string; initial: Saved; planets: ClubPlanet[] }) {
   const { pending } = useUploads();
   const [details, setDetails] = useState(initial.details);
   const [teams, setTeams] = useState(initial.teams);
+  const [levels, setLevels] = useState(initial.levels);
   const [saved, setSaved] = useState(initial);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
   const detailsDirty = !same(details, saved.details);
   const dirtyPlanets = useMemo(() => planets.filter((p) => !same(teams[p.id], saved.teams[p.id])).map((p) => p.id), [planets, teams, saved]);
-  const dirty = detailsDirty || dirtyPlanets.length > 0;
+  const levelsDirty = !same(levels, saved.levels);
+  const dirty = detailsDirty || levelsDirty || dirtyPlanets.length > 0;
   const set = <K extends keyof Details>(key: K, value: Details[K]) => setDetails((d) => ({ ...d, [key]: value }));
 
   useEffect(() => {
@@ -121,15 +157,14 @@ function Editor({ id, initial, planets }: { id: string; initial: { details: Deta
     try {
       if (detailsDirty) {
         const board = (await put(`/api/admin/boards/${id}`, details)) as ClubBoard;
-        const saveDetails: Details = {
-          year: board.year,
-          note: board.note,
-          is_current: board.is_current,
-          is_published: board.is_published,
-          images: board.images.map(({ id, url, title, caption }) => ({ id, url, title, caption })),
-        };
+        const saveDetails = toDetails({ ...board, layout: board.layout ?? details.layout });
         next = { ...next, details: saveDetails };
         setDetails(saveDetails);
+      }
+      if (levelsDirty) {
+        const saveLevels = toLevels((await put(`/api/admin/boards/${id}/levels`, { levels })) as BoardLevel[]);
+        next = { ...next, levels: saveLevels };
+        setLevels(saveLevels);
       }
       for (const planetId of dirtyPlanets) {
         const rows = (await put(`/api/admin/boards/${id}/team/${planetId}`, teams[planetId])) as ClubMember[];
@@ -148,7 +183,7 @@ function Editor({ id, initial, planets }: { id: string; initial: { details: Deta
       setSaved(next); // whatever made it through is saved, even if a later part failed
       setSaving(false);
     }
-  }, [id, details, teams, saved, detailsDirty, dirtyPlanets]);
+  }, [id, details, teams, levels, saved, detailsDirty, levelsDirty, dirtyPlanets]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -162,6 +197,11 @@ function Editor({ id, initial, planets }: { id: string; initial: { details: Deta
   }, [dirty, saving, pending, save]);
 
   const people = Object.values(teams).reduce((n, t) => n + t.directors.length + t.managers.length, 0);
+  const officials = levels.reduce((n, l) => n + l.people.length, 0);
+  // The planet directors level shows whatever is in the planet teams right now, saved or not.
+  const directors = planets.flatMap((p) =>
+    (teams[p.id]?.directors ?? []).filter((d) => d.name).map((d) => ({ name: d.name, planet: shortPlanetName(p.name) }))
+  );
 
   return (
     <div className="pb-6">
@@ -175,8 +215,9 @@ function Editor({ id, initial, planets }: { id: string; initial: { details: Deta
             Board {saved.details.year}
           </h1>
           <p className="label-chart mt-2.5" data-numeric>
-            {details.images.length} photos <span className="mx-1.5 text-star-ghost">/</span>
-            {people} people across {planets.length} planets
+            {details.layout === 'hierarchy' ? `${levels.length} levels, ${officials} people` : `${details.images.length} photos`}
+            <span className="mx-1.5 text-star-ghost">/</span>
+            {people} in planet teams
             <span className="mx-1.5 text-star-ghost">/</span>
             <span className={saved.details.is_published ? 'text-azure-glow' : 'text-sodium'}>{saved.details.is_published ? 'Published' : 'Draft'}</span>
           </p>
@@ -194,7 +235,7 @@ function Editor({ id, initial, planets }: { id: string; initial: { details: Deta
             <Field label="Year" htmlFor="year" hint="Shown on the year switcher, e.g. 2025/26.">
               <input id="year" className={inputClass} value={details.year} onChange={(e) => set('year', e.target.value)} />
             </Field>
-            <Field label="Note" htmlFor="note" className="md:col-span-2" hint="A line or two shown above this year’s photos.">
+            <Field label="Note" htmlFor="note" className="md:col-span-2" hint="Optional. A line or two shown at the top of this year.">
               <textarea id="note" rows={2} className={cn(inputClass, 'resize-y')} value={details.note} onChange={(e) => set('note', e.target.value)} />
             </Field>
           </div>
@@ -214,11 +255,52 @@ function Editor({ id, initial, planets }: { id: string; initial: { details: Deta
               onChange={(e) => set('is_current', e.target.checked)}
             />
           </div>
+          <fieldset className="mt-5">
+            <legend className="label-chart">How this year is shown</legend>
+            <div className="mt-2.5 grid grid-cols-1 gap-3 md:grid-cols-2">
+              {(
+                [
+                  ['hierarchy', 'Hierarchy', 'Level by level — advisors, top board, directors, project heads — each person with their own photo.'],
+                  ['photos', 'Group photos', 'The older archive style: one or more group photographs.'],
+                ] as const
+              ).map(([value, label, description]) => (
+                <label
+                  key={value}
+                  className={cn(
+                    'flex cursor-pointer items-start gap-3.5 rounded-sm border p-4 transition-colors duration-300',
+                    details.layout === value ? 'border-azure-lit/60 bg-azure/[0.07]' : 'border-rule hover:border-rule-lit'
+                  )}
+                >
+                  <input
+                    type="radio"
+                    name="layout"
+                    value={value}
+                    checked={details.layout === value}
+                    onChange={() => set('layout', value)}
+                    className="mt-0.5 h-4 w-4 shrink-0 accent-[var(--color-azure)]"
+                  />
+                  <span className="min-w-0">
+                    <span className="block text-[0.9375rem] leading-snug text-starlight">{label}</span>
+                    <span className="mt-1.5 block text-[0.8125rem] leading-relaxed text-star-faint">{description}</span>
+                  </span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
         </Section>
 
-        <Section title="Board photos" lede="Top board, executive board, or any other group photos for this year — as many as you like.">
-          <BoardPhotos images={details.images} onChange={(images) => set('images', images)} />
-        </Section>
+        {details.layout === 'hierarchy' ? (
+          <Section
+            title="Board hierarchy"
+            lede="The levels shown on the Board page, top to bottom. Add, rename, reorder or remove levels, and put as many people in each as this year needs."
+          >
+            <LevelsEditor levels={levels} onChange={setLevels} directors={directors} />
+          </Section>
+        ) : (
+          <Section title="Board photos" lede="Top board, executive board, or any other group photos for this year — as many as you like.">
+            <BoardPhotos images={details.images} onChange={(images) => set('images', images)} />
+          </Section>
+        )}
 
         <Section
           title="Planet teams"
@@ -258,6 +340,7 @@ function Editor({ id, initial, planets }: { id: string; initial: { details: Deta
                 if (!confirm('Discard all unsaved changes?')) return;
                 setDetails(saved.details);
                 setTeams(saved.teams);
+                setLevels(saved.levels);
                 setError('');
               }}
             >
@@ -276,7 +359,7 @@ function Editor({ id, initial, planets }: { id: string; initial: { details: Deta
 
 export default function AdminBoardPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
-  const [data, setData] = useState<{ details: Details; teams: Teams; planets: ClubPlanet[] } | null>(null);
+  const [data, setData] = useState<(Saved & { planets: ClubPlanet[] }) | null>(null);
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -296,17 +379,7 @@ export default function AdminBoardPage({ params }: { params: Promise<{ id: strin
             managers: mine.filter((m) => m.role === 'manager').map(toDraft),
           };
         }
-        setData({
-          planets,
-          teams,
-          details: {
-            year: board.year,
-            note: board.note,
-            is_current: board.is_current,
-            is_published: board.is_published,
-            images: board.images.map(({ id, url, title, caption }) => ({ id, url, title, caption })),
-          },
-        });
+        setData({ planets, teams, details: toDetails(board), levels: toLevels(board.levels) });
       } catch (err) {
         setError((err as Error).message);
       }
@@ -333,7 +406,7 @@ export default function AdminBoardPage({ params }: { params: Promise<{ id: strin
   }
   return (
     <UploadTracker>
-      <Editor id={id} initial={{ details: data.details, teams: data.teams }} planets={data.planets} />
+      <Editor id={id} initial={{ details: data.details, teams: data.teams, levels: data.levels }} planets={data.planets} />
     </UploadTracker>
   );
 }

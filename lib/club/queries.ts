@@ -2,7 +2,7 @@ import { supabaseAdmin } from '@/lib/supabase/server';
 import { isMissingTable } from '@/lib/admin-auth';
 import { FALLBACK_BOARDS, FALLBACK_MEMBERS, FALLBACK_PLANETS } from '@/lib/planets-data';
 import type { ClubBoard, ClubMember, ClubPlanet, PlanetTeam } from '@/types/club';
-import { byYearDesc } from './shared';
+import { byYearDesc, layoutOf, levelsByBoard } from './shared';
 
 /* Server-side reads for the public pages. Like the magazine, a missing table
    or an unreachable database never takes a page down: until the tables exist
@@ -30,13 +30,25 @@ export async function getClubData(): Promise<ClubData> {
       return FALLBACK;
     }
 
+    // The levels tables arrived after the first release. Until the updated SQL
+    // has been run they're missing, and every board simply shows its photos.
+    const [levels, people] = await Promise.all([
+      supabaseAdmin.from('club_board_levels').select('*'),
+      supabaseAdmin.from('club_board_people').select('*'),
+    ]);
+    const levelError = levels.error || people.error;
+    if (levelError && !isMissingTable(levelError)) console.error('Error fetching board levels:', levelError);
+    const byBoard = levelError ? new Map() : levelsByBoard(levels.data ?? [], people.data ?? []);
+
     const published = new Set((boards.data ?? []).map((b) => b.id as string));
     return {
       planets: (planets.data ?? []) as ClubPlanet[],
       boards: (boards.data ?? [])
         .map((b) => ({
-          ...(b as Omit<ClubBoard, 'images'>),
+          ...(b as Omit<ClubBoard, 'images' | 'levels'>),
+          layout: levelError ? 'photos' : layoutOf(b),
           images: ((images.data ?? []) as ClubBoard['images']).filter((i) => i.board_id === b.id),
+          levels: byBoard.get(b.id) ?? [],
         }))
         .sort(byYearDesc),
       members: ((members.data ?? []) as ClubMember[]).filter((m) => published.has(m.board_id)),

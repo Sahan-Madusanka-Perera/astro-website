@@ -1,4 +1,4 @@
-import type { ClubBoard, ClubMember, ClubPlanet } from '@/types/club';
+import type { BoardLevel, BoardPerson, ClubBoard, ClubMember, ClubPlanet, LevelKind } from '@/types/club';
 
 /* ---------------------------------------------------------------------------
    Fallback content.
@@ -48,6 +48,34 @@ const img = (board: string, position: number, url: string, title: string, captio
   position,
 });
 
+const photo = (slug: string) => `/images/boards/2025-26/${slug}.webp`;
+
+const level = (position: number, title: string, kind: LevelKind, people: [string, string, string, string, string][]): BoardLevel => {
+  const id = `fallback-2025-level-${position}`;
+  return {
+    id,
+    board_id: 'fallback-2025',
+    title,
+    kind,
+    position,
+    people: people.map(([name, title, team, subtitle, slug], i): BoardPerson => ({
+      id: `${id}-${i + 1}`,
+      level_id: id,
+      board_id: 'fallback-2025',
+      name,
+      title,
+      team,
+      subtitle,
+      image_url: photo(slug),
+      email: '',
+      linkedin: '',
+      position: i + 1,
+    })),
+  };
+};
+
+const PHYSICS = 'Senior Lecturer, Department of Physics, University of Sri Jayewardenepura';
+
 export const FALLBACK_BOARDS: ClubBoard[] = [
   {
     id: 'fallback-2025',
@@ -55,9 +83,34 @@ export const FALLBACK_BOARDS: ClubBoard[] = [
     note: 'The current board. Elected at the annual general meeting and running the club through to the next.',
     is_current: true,
     is_published: true,
-    images: [
-      img('2025', 1, '/images/top_board.jpg', 'Top Board', 'President, secretary and treasurer'),
-      img('2025', 2, '/images/board.jpg', 'Executive Board', 'Directors and managers of all six planets'),
+    layout: 'hierarchy',
+    images: [],
+    levels: [
+      level(1, 'Advisory Panel', 'people', [
+        ['Dr. S. Kandeepan', 'Senior Treasurer', '', PHYSICS, 's-kandeepan'],
+        ['Dr. R.A.D.D. Dharmasiri', 'Academic and Inter-university Advisor', '', PHYSICS, 'r-a-d-d-dharmasiri'],
+      ]),
+      level(2, 'Top Board', 'people', [
+        ['Kulamini Amarathunge', 'President', '', '', 'kulamini-amarathunge'],
+        ['Sanugi Thennakoon', 'Secretary', '', '', 'sanugi-thennakoon'],
+        ['Shanaka Lakshan', 'Vice President', '', '', 'shanaka-lakshan'],
+        ['Oshidi Maheshini', 'Vice Secretary', '', '', 'oshidi-maheshini'],
+        ['Siluni Aponso', 'Junior Treasurer', '', '', 'siluni-aponso'],
+        ['Imasha Udani', 'Media Head', '', '', 'imasha-udani'],
+        ['Kaushani Udara', 'Editor', '', '', 'kaushani-udara'],
+      ]),
+      level(3, 'Planet Directors', 'planet_directors', []),
+      level(4, 'Project Heads', 'people', [
+        ['Nuwani Supunsara', 'Project Head', 'Article Series', '', 'nuwani-supunsara'],
+        ['Tharushi Thambavita', 'Project Head', 'YouTube', '', 'tharushi-thambavita'],
+        ['Hashini Malsha', 'Project Head', 'Social Media Post Series', '', 'hashini-malsha'],
+        ['Dasuni Thathsarani', 'Project Head', 'Social Media Post Series', '', 'dasuni-thathsarani'],
+        ['Shehani Arunika', 'Project Head', 'Event Post Series', '', 'shehani-arunika'],
+        ['Dumindu Hasaranga', 'Project Head', 'Event Post Series', '', 'dumindu-hasaranga'],
+        ['Erandi Disanayake', 'Project Head', 'SPERO Charity Project', '', 'erandi-disanayake'],
+        ['Achira Tharaka', 'Project Head', 'SPERO Charity Project', '', 'achira-tharaka'],
+        ['Sudheera Isuru', 'Project Head', 'SPERO Charity Project', '', 'sudheera-isuru'],
+      ]),
     ],
   },
   {
@@ -66,10 +119,12 @@ export const FALLBACK_BOARDS: ClubBoard[] = [
     note: 'The board that took the club through its busiest observation season to date.',
     is_current: false,
     is_published: true,
+    layout: 'photos',
     images: [
       img('2024', 1, '/images/boards/2024_top_board.jpg', 'Top Board', 'President, secretary and treasurer'),
       img('2024', 2, '/images/boards/2024_board.jpg', 'Executive Board', 'Directors and managers of all six planets'),
     ],
+    levels: [],
   },
 ];
 
@@ -104,7 +159,10 @@ export const FALLBACK_MEMBERS: ClubMember[] = [
   M('research', 'manager', 1, 'Thilini Maduwanthi', '/images/research_planet/thilini.jpg', 'manager1.research@usjastro.lk'),
   M('research', 'manager', 2, 'Vishwa Sasintha', '/images/research_planet/vishwa.jpg', 'manager2.research@usjastro.lk'),
   M('research', 'manager', 3, 'Chirath Chamuditha', '/images/research_planet/chirath.png', 'manager3.research@usjastro.lk'),
-  M('media-marketing', 'director', 1, 'Sahan Perera', '', 'media.director@usjastro.lk', 'Managing media relations and marketing strategies.'),
+  M('media-marketing', 'director', 1, 'Sahan Perera', photo('sahan-perera'), 'media.director@usjastro.lk', 'Managing media relations and marketing strategies.'),
+  M('management-finance', 'director', 1, 'Shashini Imasha', photo('shashini-imasha'), ''),
+  M('observation', 'director', 1, 'Zenith Heavenly', photo('zenith-heavenly'), ''),
+  M('organizing', 'director', 1, 'Lakshika Hansini', photo('lakshika-hansini'), ''),
   M('media-marketing', 'manager', 1, 'Nethmi Bhayogya', '', 'manager1.media@usjastro.lk'),
   M('media-marketing', 'manager', 2, 'Chalusha', '', 'manager2.media@usjastro.lk'),
 ];
