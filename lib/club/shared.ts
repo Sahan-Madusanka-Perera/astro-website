@@ -1,5 +1,7 @@
 /* Shared by the server routes and the admin screens. */
 
+import type { BoardLayout, BoardLevel, BoardPerson } from '@/types/club';
+
 export const CLUB_BUCKET = 'club';
 export const CLUB_UPLOAD_FOLDERS = ['boards', 'members', 'planets'] as const;
 export type ClubUploadFolder = (typeof CLUB_UPLOAD_FOLDERS)[number];
@@ -35,4 +37,31 @@ export function slugify(s: string) {
 /** Sorts "2025/26" before "2024/25". */
 export function byYearDesc<T extends { year: string }>(a: T, b: T) {
   return b.year.localeCompare(a.year, undefined, { numeric: true });
+}
+
+/** Groups level and person rows into each board's ordered levels. */
+export function levelsByBoard(levels: Omit<BoardLevel, 'people'>[], people: BoardPerson[]) {
+  const map = new Map<string, BoardLevel[]>();
+  for (const l of [...levels].sort((a, b) => a.position - b.position)) {
+    const level: BoardLevel = {
+      ...l,
+      people: people.filter((p) => p.level_id === l.id).sort((a, b) => a.position - b.position),
+    };
+    map.set(l.board_id, [...(map.get(l.board_id) ?? []), level]);
+  }
+  return map;
+}
+
+/** Boards saved before layouts existed have no layout column: they show photos. */
+export const layoutOf = (b: { layout?: string | null }): BoardLayout => (b.layout === 'hierarchy' ? 'hierarchy' : 'photos');
+
+/** Splits a level's people into consecutive groups by team, keeping their order. */
+export function groupByTeam<T extends { team: string }>(people: T[]): { team: string; people: T[] }[] {
+  const groups: { team: string; people: T[] }[] = [];
+  for (const p of people) {
+    const last = groups[groups.length - 1];
+    if (last && last.team === p.team) last.people.push(p);
+    else groups.push({ team: p.team, people: [p] });
+  }
+  return groups;
 }

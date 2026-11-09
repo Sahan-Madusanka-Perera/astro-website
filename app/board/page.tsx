@@ -6,8 +6,8 @@ import { Shell, SectionHead } from '@/components/layout/Section';
 import { BoardArchive } from '@/components/board/BoardArchive';
 import { getClubData } from '@/lib/club/queries';
 
-/* Every year's board, its photographs and its planet teams — all managed in
-   Admin → Boards, which refreshes this page whenever something is saved. */
+/* Every year's board — its hierarchy or photographs — and its planet teams,
+   all managed in Admin → Boards, which refreshes this page on every save. */
 
 export const revalidate = 60;
 
@@ -28,7 +28,7 @@ export default async function BoardPage() {
         <Shell className="relative z-10 pt-28 pb-24 md:pt-36 md:pb-32">
           <SectionHead
             title={<>The people<br />who run it.</>}
-            lede="Every year the club elects a top board and an executive board. This is the archive — who was steering, and when."
+            lede="Every year the club elects its board: advisors, a top board, the planet directors and project heads. This is the archive — who was steering, and when."
             aside={
               <p className="label-chart">
                 {boards.length} {boards.length === 1 ? 'year' : 'years'} on record

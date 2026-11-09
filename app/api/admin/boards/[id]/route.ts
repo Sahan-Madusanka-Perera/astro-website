@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase/server';
 import { isAdminRequest, unauthorized } from '@/lib/admin-auth';
 import { errorResponse, imageUrl, InputError, removeImages, revalidateClub, text } from '@/lib/club/admin';
-import { UUID } from '@/lib/club/shared';
+import { layoutOf, levelsByBoard, UUID } from '@/lib/club/shared';
 
 export const dynamic = 'force-dynamic';
 
@@ -14,22 +14,29 @@ async function boardId(params: Ctx['params']) {
   return id;
 }
 
-/** The board, its photos, every planet, and this year's members of every planet. */
+/** The board with its photos and levels, every planet, and this year's members of every planet. */
 export async function GET(request: NextRequest, { params }: Ctx) {
   if (!isAdminRequest(request)) return unauthorized();
   try {
     const id = await boardId(params);
-    const [board, images, planets, members] = await Promise.all([
+    const [board, images, planets, members, levels, people] = await Promise.all([
       supabaseAdmin.from('club_boards').select('*').eq('id', id).maybeSingle(),
       supabaseAdmin.from('club_board_images').select('*').eq('board_id', id).order('position'),
       supabaseAdmin.from('club_planets').select('*').order('position'),
       supabaseAdmin.from('club_members').select('*').eq('board_id', id).order('position'),
+      supabaseAdmin.from('club_board_levels').select('*').eq('board_id', id),
+      supabaseAdmin.from('club_board_people').select('*').eq('board_id', id),
     ]);
-    const error = board.error || images.error || planets.error || members.error;
+    const error = board.error || images.error || planets.error || members.error || levels.error || people.error;
     if (error) throw error;
     if (!board.data) throw new InputError('Unknown board.', 404);
     return NextResponse.json({
-      board: { ...board.data, images: images.data ?? [] },
+      board: {
+        ...board.data,
+        layout: layoutOf(board.data),
+        images: images.data ?? [],
+        levels: levelsByBoard(levels.data ?? [], people.data ?? []).get(id) ?? [],
+      },
       planets: planets.data ?? [],
       members: members.data ?? [],
     });
@@ -38,7 +45,7 @@ export async function GET(request: NextRequest, { params }: Ctx) {
   }
 }
 
-/** Saves the year's details and its full, ordered list of board photos. */
+/** Saves the year's details, how it is shown, and its full, ordered list of board photos. */
 export async function PUT(request: NextRequest, { params }: Ctx) {
   if (!isAdminRequest(request)) return unauthorized();
   try {
@@ -77,6 +84,7 @@ export async function PUT(request: NextRequest, { params }: Ctx) {
         year,
         note: text(body.note, 2000),
         is_published: body.is_published === true,
+        layout: body.layout === 'photos' ? 'photos' : 'hierarchy',
         updated_at: new Date().toISOString(),
       })
       .eq('id', id)
@@ -120,20 +128,22 @@ export async function PUT(request: NextRequest, { params }: Ctx) {
   }
 }
 
-/** Deletes the year with its photos and every member of every planet that year. */
+/** Deletes the year with its photos, its levels and people, and every member of every planet that year. */
 export async function DELETE(request: NextRequest, { params }: Ctx) {
   if (!isAdminRequest(request)) return unauthorized();
   try {
     const id = await boardId(params);
-    const [images, members] = await Promise.all([
+    const [images, members, people] = await Promise.all([
       supabaseAdmin.from('club_board_images').select('url').eq('board_id', id),
       supabaseAdmin.from('club_members').select('image_url').eq('board_id', id),
+      supabaseAdmin.from('club_board_people').select('image_url').eq('board_id', id),
     ]);
     const { error } = await supabaseAdmin.from('club_boards').delete().eq('id', id);
     if (error) throw error;
     await removeImages([
       ...(images.data ?? []).map((i) => i.url),
       ...(members.data ?? []).map((m) => m.image_url),
+      ...(people.data ?? []).map((p) => p.image_url),
     ]);
     revalidateClub();
     return NextResponse.json({ message: 'Board deleted' });
