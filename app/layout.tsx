@@ -19,7 +19,7 @@ const jetbrains = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://astronomy-club.usjp.ac.lk"),
+  metadataBase: new URL("https://japuraastro.lk"),
   title: {
     default: "J'pura Astronomy Club",
     template: "%s · J'pura Astronomy Club",
