@@ -3,7 +3,7 @@
 import { Mail, MapPin, ArrowUpRight } from 'lucide-react';
 import {
   InstagramIcon, FacebookIcon, YouTubeIcon,
-  LinkedInIcon, TikTokIcon, XIcon, WhatsAppIcon,
+  LinkedInIcon, TikTokIcon, WhatsAppIcon,
 } from './social-icons';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -11,16 +11,13 @@ import { MoonPhase } from '@/components/cosmos/MoonPhase';
 import { StarField } from '@/components/cosmos/StarField';
 import { Shell } from './Section';
 
-/* TODO(club): replace each `url` with the club's real profile — these are bare
-   domains, carried over from the previous site, and they were never handles. */
 const SOCIALS = [
-  { url: 'https://www.instagram.com/', name: 'Instagram', Icon: InstagramIcon },
-  { url: 'https://www.facebook.com/', name: 'Facebook', Icon: FacebookIcon },
-  { url: 'https://www.youtube.com/', name: 'YouTube', Icon: YouTubeIcon },
-  { url: 'https://www.linkedin.com/', name: 'LinkedIn', Icon: LinkedInIcon },
-  { url: 'https://www.tiktok.com/', name: 'TikTok', Icon: TikTokIcon },
-  { url: 'https://www.x.com/', name: 'X', Icon: XIcon },
-  { url: 'https://www.whatsapp.com/', name: 'WhatsApp', Icon: WhatsAppIcon },
+  { url: 'https://www.facebook.com/japuraAstro', name: 'Facebook', Icon: FacebookIcon },
+  { url: 'https://www.instagram.com/japura_astro', name: 'Instagram', Icon: InstagramIcon },
+  { url: 'https://www.youtube.com/@japuraAstro', name: 'YouTube', Icon: YouTubeIcon },
+  { url: 'https://www.tiktok.com/@jpuraastronomy', name: 'TikTok', Icon: TikTokIcon },
+  { url: 'https://www.whatsapp.com/channel/0029VaxrkHyBlHpVy5dPLi3G', name: 'WhatsApp', Icon: WhatsAppIcon },
+  { url: 'https://www.linkedin.com/company/j-pura-astronomy-club', name: 'LinkedIn', Icon: LinkedInIcon },
 ];
 
 const SITE_LINKS = [
